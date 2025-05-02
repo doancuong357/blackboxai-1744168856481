@@ -1,42 +1,51 @@
 <template>
-  <div class="p-6">
-    <h1 class="text-2xl font-bold mb-6">HR Dashboard</h1>
-    
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+  <div class="dashboard-container">
+    <h1 class="dashboard-title">HR Dashboard</h1>
+
+    <!-- Cards Section -->
+    <div class="dashboard-cards">
       <DashboardCard 
         title="Total Employees" 
-        value="124" 
+        :value="totalEmployees" 
         icon="users"
-        color="bg-blue-100 text-blue-800"
+        color="#4caf50" 
       />
       <DashboardCard 
         title="Active Payroll" 
-        value="$124,500" 
+        :value="activePayroll" 
         icon="currency-dollar"
-        color="bg-green-100 text-green-800"
+        color="#2196f3" 
       />
       <DashboardCard 
         title="Departments" 
-        value="8" 
+        :value="departments" 
         icon="building-office"
-        color="bg-purple-100 text-purple-800"
+        color="#ff9800" 
       />
       <DashboardCard 
         title="Pending Tasks" 
-        value="5" 
+        :value="pendingTasks" 
         icon="clipboard-list"
-        color="bg-yellow-100 text-yellow-800"
+        color="#f44336" 
       />
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <div class="bg-white p-6 rounded-lg shadow">
-        <h2 class="text-lg font-semibold mb-4">Recent Employees</h2>
-        <!-- Employee list component will go here -->
-      </div>
-      <div class="bg-white p-6 rounded-lg shadow">
-        <h2 class="text-lg font-semibold mb-4">Payroll Summary</h2>
-        <!-- Payroll chart component will go here -->
+    <!-- Recent Employees Section -->
+    <div class="dashboard-section">
+      <h2 class="section-title">Recent Employees</h2>
+      <ul class="employee-list">
+        <li v-for="employee in recentEmployees" :key="employee.id" class="employee-item">
+          <span>{{ employee.name }}</span>
+          <span class="employee-position">{{ employee.position }}</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Payroll Summary Section -->
+    <div class="dashboard-section">
+      <h2 class="section-title">Payroll Summary</h2>
+      <div class="chart-placeholder">
+        <p>Payroll chart will be displayed here</p>
       </div>
     </div>
   </div>
@@ -44,4 +53,91 @@
 
 <script setup>
 import DashboardCard from '@/components/common/DashboardCard.vue'
+
+// Mock data for the dashboard
+const totalEmployees = 124
+const activePayroll = '$124,500'
+const departments = 8
+const pendingTasks = 5
+
+const recentEmployees = [
+  { id: 1, name: 'John Doe', position: 'Software Engineer' },
+  { id: 2, name: 'Jane Smith', position: 'HR Manager' },
+  { id: 3, name: 'Alice Johnson', position: 'Accountant' },
+  { id: 4, name: 'Bob Brown', position: 'Marketing Specialist' }
+]
 </script>
+
+<style scoped>
+/* Container Styles */
+.dashboard-container {
+  padding: 24px;
+  background-color: #f9fafb; /* Light gray background */
+}
+
+/* Title Styles */
+.dashboard-title {
+  font-size: 28px;
+  font-weight: bold;
+  margin-bottom: 24px;
+  color: #111827; /* Dark text */
+  text-align: center;
+}
+
+/* Cards Section */
+.dashboard-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+/* Section Styles */
+.dashboard-section {
+  background-color: #ffffff; /* White background */
+  padding: 16px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  margin-bottom: 24px;
+}
+
+.section-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #374151; /* Gray text */
+}
+
+/* Employee List */
+.employee-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.employee-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #e5e7eb; /* Light gray border */
+}
+
+.employee-item:last-child {
+  border-bottom: none;
+}
+
+.employee-position {
+  color: #6b7280; /* Gray text */
+}
+
+/* Chart Placeholder */
+.chart-placeholder {
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9ca3af; /* Light gray text */
+  background-color: #f3f4f6; /* Light gray background */
+  border-radius: 8px;
+}
+</style>

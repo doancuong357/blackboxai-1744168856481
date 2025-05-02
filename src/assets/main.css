@@ -1,20 +1,44 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Reset CSS */
+body, h1, h2, button {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
 body {
   font-family: 'Inter', sans-serif;
+  background-color: #f9fafb; /* Màu nền nhạt */
+  color: #333; /* Màu chữ mặc định */
 }
 
-/* Custom base styles */
-@layer base {
-  h1 {
-    @apply text-2xl font-bold;
-  }
-  h2 {
-    @apply text-xl font-semibold;
-  }
-  button {
-    @apply focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500;
-  }
+/* Custom styles */
+h1 {
+  font-size: 2rem; /* Tương đương text-2xl */
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+h2 {
+  font-size: 1.5rem; /* Tương đương text-xl */
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+button {
+  border: none;
+  outline: none;
+  padding: 0.5rem 1rem;
+  background-color: #2563eb; /* Màu xanh */
+  color: white;
+  border-radius: 0.375rem; /* Bo góc */
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #1d4ed8; /* Màu xanh đậm hơn khi hover */
+}
+
+button:focus {
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.5); /* Hiệu ứng focus */
 }

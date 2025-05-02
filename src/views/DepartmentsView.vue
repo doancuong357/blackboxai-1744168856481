@@ -1,54 +1,41 @@
 <template>
-  <div class="p-6">
-    <div class="flex justify-between items-center mb-6">
-      <h1 class="text-2xl font-bold">Department & Job Title Management</h1>
-      <div class="space-x-2">
-        <button 
-          class="bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700 transition"
-          @click="showAddDepartmentModal = true"
-        >
+  <div class="departments-container">
+    <!-- Header Section -->
+    <div class="header">
+      <h1 class="departments-title">Department & Job Title Management</h1>
+      <div class="header-buttons">
+        <button class="add-button" @click="toggleModal('department', true)">
           Add Department
         </button>
-        <button 
-          class="bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700 transition"
-          @click="showAddJobTitleModal = true"
-        >
+        <button class="add-button" @click="toggleModal('jobTitle', true)">
           Add Job Title
         </button>
       </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <!-- Departments Section -->
-      <div class="bg-white rounded-lg shadow overflow-hidden">
-        <div class="p-4 border-b">
-          <h2 class="text-lg font-semibold">Departments</h2>
+    <!-- Departments Section -->
+    <div class="grid-container">
+      <div class="section-card">
+        <div class="section-header">
+          <h2>Departments</h2>
         </div>
-        <table class="min-w-full divide-y divide-gray-200">
-          <thead class="bg-gray-50">
+        <table class="table">
+          <thead>
             <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Head Count</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              <th>Name</th>
+              <th>Head Count</th>
+              <th>Actions</th>
             </tr>
           </thead>
-          <tbody class="bg-white divide-y divide-gray-200">
-            <tr 
-              v-for="dept in departments"
-              :key="dept.id"
-            >
-              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                {{ dept.name }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {{ dept.employeeCount }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                <button class="text-primary-600 hover:text-primary-900 mr-3">Edit</button>
-                <button 
-                  class="text-danger-600 hover:text-danger-900"
-                  @click="deleteDepartment(dept.id)"
-                >
+          <tbody>
+            <tr v-for="dept in departments" :key="dept.id">
+              <td>{{ dept.name }}</td>
+              <td>{{ dept.employeeCount }}</td>
+              <td>
+                <button class="action-button edit" @click="editDepartment(dept.id)">
+                  Edit
+                </button>
+                <button class="action-button delete" @click="confirmDelete('department', dept.id)">
                   Delete
                 </button>
               </td>
@@ -58,39 +45,29 @@
       </div>
 
       <!-- Job Titles Section -->
-      <div class="bg-white rounded-lg shadow overflow-hidden">
-        <div class="p-4 border-b">
-          <h2 class="text-lg font-semibold">Job Titles</h2>
+      <div class="section-card">
+        <div class="section-header">
+          <h2>Job Titles</h2>
         </div>
-        <table class="min-w-full divide-y divide-gray-200">
-          <thead class="bg-gray-50">
+        <table class="table">
+          <thead>
             <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employees</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              <th>Title</th>
+              <th>Department</th>
+              <th>Employees</th>
+              <th>Actions</th>
             </tr>
           </thead>
-          <tbody class="bg-white divide-y divide-gray-200">
-            <tr 
-              v-for="job in jobTitles"
-              :key="job.id"
-            >
-              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                {{ job.title }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {{ job.department }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {{ job.employeeCount }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                <button class="text-primary-600 hover:text-primary-900 mr-3">Edit</button>
-                <button 
-                  class="text-danger-600 hover:text-danger-900"
-                  @click="deleteJobTitle(job.id)"
-                >
+          <tbody>
+            <tr v-for="job in jobTitles" :key="job.id">
+              <td>{{ job.title }}</td>
+              <td>{{ job.department }}</td>
+              <td>{{ job.employeeCount }}</td>
+              <td>
+                <button class="action-button edit" @click="editJobTitle(job.id)">
+                  Edit
+                </button>
+                <button class="action-button delete" @click="confirmDelete('jobTitle', job.id)">
                   Delete
                 </button>
               </td>
@@ -101,105 +78,46 @@
     </div>
 
     <!-- Add Department Modal -->
-    <div 
+    <Modal
       v-if="showAddDepartmentModal"
-      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
+      title="Add New Department"
+      @close="toggleModal('department', false)"
+      @save="addDepartment"
     >
-      <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="text-xl font-bold">Add New Department</h2>
-          <button @click="showAddDepartmentModal = false">
-            <XMarkIcon class="h-6 w-6 text-gray-500" />
-          </button>
-        </div>
-        <div class="space-y-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Department Name</label>
-            <input 
-              type="text" 
-              class="w-full border rounded-md px-3 py-2"
-              v-model="newDepartment.name"
-            >
-          </div>
-        </div>
-        <div class="mt-6 flex justify-end space-x-3">
-          <button 
-            class="px-4 py-2 border rounded-md"
-            @click="showAddDepartmentModal = false"
-          >
-            Cancel
-          </button>
-          <button 
-            class="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700"
-            @click="addDepartment"
-          >
-            Save
-          </button>
-        </div>
+      <div>
+        <label class="form-label">Department Name</label>
+        <input type="text" class="form-input" v-model="newDepartment.name" />
       </div>
-    </div>
+    </Modal>
 
     <!-- Add Job Title Modal -->
-    <div 
+    <Modal
       v-if="showAddJobTitleModal"
-      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
+      title="Add New Job Title"
+      @close="toggleModal('jobTitle', false)"
+      @save="addJobTitle"
     >
-      <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="text-xl font-bold">Add New Job Title</h2>
-          <button @click="showAddJobTitleModal = false">
-            <XMarkIcon class="h-6 w-6 text-gray-500" />
-          </button>
-        </div>
-        <div class="space-y-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Job Title</label>
-            <input 
-              type="text" 
-              class="w-full border rounded-md px-3 py-2"
-              v-model="newJobTitle.title"
-            >
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Department</label>
-            <select 
-              class="w-full border rounded-md px-3 py-2"
-              v-model="newJobTitle.departmentId"
-            >
-              <option 
-                v-for="dept in departments"
-                :key="dept.id"
-                :value="dept.id"
-              >
-                {{ dept.name }}
-              </option>
-            </select>
-          </div>
-        </div>
-        <div class="mt-6 flex justify-end space-x-3">
-          <button 
-            class="px-4 py-2 border rounded-md"
-            @click="showAddJobTitleModal = false"
-          >
-            Cancel
-          </button>
-          <button 
-            class="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700"
-            @click="addJobTitle"
-          >
-            Save
-          </button>
-        </div>
+      <div>
+        <label class="form-label">Job Title</label>
+        <input type="text" class="form-input" v-model="newJobTitle.title" />
       </div>
-    </div>
+      <div>
+        <label class="form-label">Department</label>
+        <select class="form-input" v-model="newJobTitle.departmentId">
+          <option v-for="dept in departments" :key="dept.id" :value="dept.id">
+            {{ dept.name }}
+          </option>
+        </select>
+      </div>
+    </Modal>
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
-import { XMarkIcon } from '@heroicons/vue/24/outline'
+import Modal from '@/components/common/Modal.vue'
 
-// Mock data - will be replaced with API calls later
+// Mock data
 const departments = ref([
   { id: 1, name: 'Engineering', employeeCount: 24 },
   { id: 2, name: 'HR', employeeCount: 5 },
@@ -217,30 +135,29 @@ const jobTitles = ref([
 const showAddDepartmentModal = ref(false)
 const showAddJobTitleModal = ref(false)
 
-const newDepartment = ref({
-  name: ''
-})
+const newDepartment = ref({ name: '' })
+const newJobTitle = ref({ title: '', departmentId: '' })
 
-const newJobTitle = ref({
-  title: '',
-  departmentId: ''
-})
+function toggleModal(type, value) {
+  if (type === 'department') showAddDepartmentModal.value = value
+  if (type === 'jobTitle') showAddJobTitleModal.value = value
+}
 
 function addDepartment() {
+  if (!newDepartment.value.name.trim()) return alert('Department name is required!')
   departments.value.push({
     id: departments.value.length + 1,
     name: newDepartment.value.name,
     employeeCount: 0
   })
   newDepartment.value.name = ''
-  showAddDepartmentModal.value = false
-}
-
-function deleteDepartment(id) {
-  departments.value = departments.value.filter(dept => dept.id !== id)
+  toggleModal('department', false)
 }
 
 function addJobTitle() {
+  if (!newJobTitle.value.title.trim() || !newJobTitle.value.departmentId) {
+    return alert('Job title and department are required!')
+  }
   const department = departments.value.find(d => d.id == newJobTitle.value.departmentId)
   jobTitles.value.push({
     id: jobTitles.value.length + 1,
@@ -250,10 +167,167 @@ function addJobTitle() {
   })
   newJobTitle.value.title = ''
   newJobTitle.value.departmentId = ''
-  showAddJobTitleModal.value = false
-}
-
-function deleteJobTitle(id) {
-  jobTitles.value = jobTitles.value.filter(job => job.id !== id)
+  toggleModal('jobTitle', false)
 }
 </script>
+
+<style scoped>
+/* Container Styles */
+.departments-container {
+  padding: 24px;
+  background-color: #f9fafb;
+}
+
+/* Header Styles */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.departments-title {
+  font-size: 24px;
+  font-weight: bold;
+  color: #111827;
+}
+
+.header-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.add-button {
+  background-color: #2563eb;
+  color: white;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.add-button:hover {
+  background-color: #1d4ed8;
+}
+
+/* Grid Layout */
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+/* Section Card */
+.section-card {
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.section-header {
+  padding: 16px;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 18px;
+  font-weight: bold;
+  color: #374151;
+}
+
+/* Table Styles */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  padding: 12px;
+  font-size: 14px;
+  text-align: left;
+}
+
+.table th {
+  background-color: #f3f4f6;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #6b7280;
+}
+
+.table tbody tr:hover {
+  background-color: #f9fafb;
+}
+
+/* Action Buttons */
+.action-button {
+  background: none;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.action-button.edit {
+  color: #2563eb;
+}
+
+.action-button.edit:hover {
+  color: #1d4ed8;
+}
+
+.action-button.delete {
+  color: #dc2626;
+}
+
+.action-button.delete:hover {
+  color: #b91c1c;
+}
+
+/* Modal Styles */
+.modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #ffffff;
+  padding: 24px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  width: 400px;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+}
+
+.form-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.form-input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 8px rgba(37, 99, 235, 0.5);
+  outline: none;
+}
+</style>

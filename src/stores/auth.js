@@ -1,54 +1,42 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import axios from 'axios'
 
-export const useAuthStore = defineStore('auth', () => {
-  const router = useRouter()
-  const user = ref(null)
-  const isAuthenticated = ref(false)
-  const loading = ref(false)
-  const error = ref(null)
+export const useAuthStore = defineStore('auth', {
+  state: () => ({
+    token: localStorage.getItem('token') || null,
+    user: null,
+    // Thêm thuộc tính isAuthenticated để kiểm tra người dùng đã đăng nhập hay chưa
+    isAuthenticated: !!localStorage.getItem('token')
+  }),
+  actions: {
+    async login({ username, password }) {
+      try {
+        const response = await axios.post('http://localhost:3009/login', {
+          username,
+          password
+        })
 
-  async function login(credentials) {
-    loading.value = true
-    error.value = null
-    
-    try {
-      // Mock authentication - will be replaced with API calls
-      if (!credentials.email || !credentials.password) {
-        throw new Error('Email and password are required')
+        this.token = response.data.token
+        localStorage.setItem('token', this.token)
+        this.isAuthenticated = true // Cập nhật trạng thái xác thực
+        
+        // Optionally, có thể decode token để lấy user info nếu cần
+        const payload = JSON.parse(atob(this.token.split('.')[1]))
+        this.user = {
+          id: payload.id,
+          username: payload.username,
+          role: payload.role
+        }
+
+      } catch (error) {
+        throw error
       }
-
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000))
-
-      user.value = {
-        name: 'Admin User',
-        email: credentials.email,
-        role: 'admin'
-      }
-      isAuthenticated.value = true
-      router.push('/')
-    } catch (err) {
-      error.value = err.message
-      throw err
-    } finally {
-      loading.value = false
-    }
-  }
-
-  function logout() {
-    user.value = null
-    isAuthenticated.value = false
-    router.push('/login')
-  }
-
-  return { 
-    user, 
-    isAuthenticated, 
-    loading,
-    error,
-    login, 
-    logout 
-  }
+    },
+    logout() {
+      this.token = null
+      this.isAuthenticated = false // Cập nhật trạng thái xác thực khi logout
+      this.user = null
+      localStorage.removeItem('token')
+    },
+  },
 })

@@ -1,104 +1,155 @@
+<!-- filepath: src/views/LoginView.vue -->
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-md w-full space-y-8">
-      <div>
-        <img class="mx-auto h-12 w-auto" src="https://tailwindui.com/img/logos/workflow-mark-indigo-600.svg" alt="Workflow">
-        <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          Sign in to your account
-        </h2>
-        <p v-if="error" class="mt-2 text-center text-sm text-red-600">{{ error }}</p>
-      </div>
-      <form class="mt-8 space-y-6" @submit.prevent="login">
-        <input type="hidden" name="remember" value="true">
-        <div class="rounded-md shadow-sm -space-y-px">
-          <div>
-            <label for="email-address" class="sr-only">Email address</label>
-            <input 
-              id="email-address" 
-              name="email" 
-              type="email" 
-              autocomplete="email" 
-              required 
-              class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" 
-              placeholder="Email address"
-              v-model="form.email"
-            >
-          </div>
-          <div>
-            <label for="password" class="sr-only">Password</label>
-            <input 
-              id="password" 
-              name="password" 
-              type="password" 
-              autocomplete="current-password" 
-              required 
-              class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm" 
-              placeholder="Password"
-              v-model="form.password"
-            >
-          </div>
+  <div class="login-container">
+    <div class="login-card">
+      <h2 class="login-title">Sign in to your account</h2>
+      <form @submit.prevent="handleLogin" class="login-form">
+        <div class="form-group">
+          <label for="username" class="form-label">Username</label>
+          <input
+            id="username"
+            name="username"
+            type="text"
+            autocomplete="username"
+            required
+            class="form-input"
+            placeholder="Enter your username"
+            v-model="username"
+          />
         </div>
-
-        <div class="flex items-center justify-between">
-          <div class="flex items-center">
-            <input 
-              id="remember-me" 
-              name="remember-me" 
-              type="checkbox" 
-              class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-              v-model="form.remember"
-            >
-            <label for="remember-me" class="ml-2 block text-sm text-gray-900">
-              Remember me
-            </label>
-          </div>
-
-          <div class="text-sm">
-            <a href="#" class="font-medium text-indigo-600 hover:text-indigo-500">
-              Forgot your password?
-            </a>
-          </div>
+        <div class="form-group">
+          <label for="password" class="form-label">Password</label>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            autocomplete="current-password"
+            required
+            class="form-input"
+            placeholder="Enter your password"
+            v-model="password"
+          />
         </div>
-
         <div>
-          <button 
-            type="submit" 
-            class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-          >
-            <span class="absolute left-0 inset-y-0 flex items-center pl-3">
-              <LockClosedIcon class="h-5 w-5 text-indigo-500 group-hover:text-indigo-400" />
-            </span>
-            Sign in
-          </button>
+          <button type="submit" class="login-button">Sign in</button>
         </div>
       </form>
+      <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
-import { LockClosedIcon } from '@heroicons/vue/solid'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
+const username = ref('') // 🛠 Đổi thành username
+const password = ref('')
+const errorMessage = ref('')
 const router = useRouter()
 const authStore = useAuthStore()
 
-const form = ref({
-  email: '',
-  password: '',
-  remember: false
-})
-
-const error = ref('')
-
-async function login() {
+async function handleLogin() {
   try {
-    await authStore.login(form.value)
-    router.push('/')
+    console.log('Logging in with:', username.value, password.value); // Kiểm tra giá trị username và password
+    await authStore.login({ username: username.value, password: password.value });
+    console.log('Login successful, redirecting...');
+    router.push('/'); // Chuyển hướng tới trang chủ
+    console.log('Redirecting to home page');
   } catch (err) {
-    error.value = 'Invalid email or password'
+    console.error('Login error:', err);
+    errorMessage.value = err.response?.data?.message || 'Login failed';
   }
 }
+
 </script>
+
+<style scoped>
+/* === Styles như cũ, giữ nguyên, đẹp rồi === */
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-image: url('https://advsolutions.vn/wp-content/uploads/2019/12/background-powerpoint-cong-nghe-12.jpg');
+}
+.login-card {
+  background-color: #82b0c6;
+  padding: 32px;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 400px;
+  animation: fadeIn 0.5s ease-in-out;
+}
+.login-title {
+  font-size: 24px;
+  font-weight: bold;
+  color: #1f2937;
+  text-align: center;
+  margin-bottom: 24px;
+}
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+.form-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 8px;
+}
+.form-input {
+  padding: 10px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #374151;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+.form-input:focus {
+  border-color: #3225eb;
+  box-shadow: 0 0 8px rgba(37, 99, 235, 0.5);
+  outline: none;
+}
+.login-button {
+  background-color: #03256f;
+  color: #ffffff;
+  padding: 12px 16px;
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+.login-button:hover {
+  background-color: #1d4ed8;
+  transform: translateY(-2px);
+}
+.login-button:active {
+  transform: translateY(0);
+}
+.error-message {
+  color: #dc2626;
+  font-size: 14px;
+  text-align: center;
+  margin-top: 16px;
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+</style>
