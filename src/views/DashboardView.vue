@@ -1,7 +1,6 @@
 <template>
   <div class="dashboard-container">
     <h1 class="dashboard-title">HR Dashboard</h1>
-
     <!-- Cards Section -->
     <div class="dashboard-cards">
       <DashboardCard 
@@ -29,7 +28,6 @@
         color="#f44336" 
       />
     </div>
-
     <!-- Recent Employees Section -->
     <div class="dashboard-section">
       <h2 class="section-title">Recent Employees</h2>

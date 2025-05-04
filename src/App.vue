@@ -32,7 +32,12 @@
 
       <!-- Footer -->
       <footer class="footer">
-        <p>© 2025 HR Dashboard. All rights reserved.</p>
+        <div class="footer-content">
+          <p>© 2025 Cuong Developer</p>
+          <img src="https://scontent.fdad3-4.fna.fbcdn.net/v/t1.15752-9/494357457_929063372559218_893845112797750541_n.jpg?stp=dst-jpg_p480x480_tt6&_nc_cat=100&ccb=1-7&_nc_sid=0024fc&_nc_ohc=XGgP1oitbVsQ7kNvwG1ImU2&_nc_oc=AdkwcFNrWWhdYWx7O1Aq7r0Y5xIoSJZm6TsY2pFujgweBJmMjtjLo7Y2NJESaKwKjUA&_nc_zt=23&_nc_ht=scontent.fdad3-4.fna&oh=03_Q7cD2QFiUOolk5z8URqmBdgFwFy6SpcWIv7tGqVMW6RzRNSTvg&oe=683F5613" alt="QR Code" class="qr-code" />
+          <p>Bank: MBMB Bank</p>
+          <p>Account Holder: Doan Viet Cuong</p>
+        </div>
       </footer>
     </div>
   </div>
@@ -146,12 +151,27 @@ async function  handleLogout() {
 
 /* Footer */
 .footer {
-  background-color: #f3f4f6; /* Light gray background */
+  background-color: #cee1e2; /* Light gray background */
   text-align: center;
   padding: 16px 0;
   font-size: 14px;
   color: #6b7280; /* Gray text */
   border-top: 1px solid #e5e7eb; /* Light gray border */
   margin-top: auto; /* Push footer to the bottom */
+}
+
+.footer-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px; /* Khoảng cách giữa các phần tử */
+  flex-wrap: wrap; /* Đảm bảo các phần tử xuống dòng trên màn hình nhỏ */
+}
+
+.qr-code {
+  width: 70px; /* Giảm kích thước hình ảnh */
+  height: 70px;
+  border: 1px solid #d1d5db; /* Light gray border */
+  border-radius: 8px;
 }
 </style>

@@ -1,426 +1,257 @@
 <template>
-  <div class="payroll-container">
-    <h1 class="payroll-title">Payroll Management</h1>
+  <div class="employee-container">
+    <h1 class="title">Employee Management</h1>
 
-    <!-- Add Employee Button -->
     <div class="header-actions">
-      <button class="add-employee-button" @click="showAddEmployeeModal = true">
+      <button class="add-button" @click="showAddModal = true">
         Add Employee
       </button>
     </div>
 
-    <!-- Search and Filter Section -->
-    <div class="search-filter-container">
-      <input
-        type="text"
-        placeholder="Search payroll records..."
-        class="search-input"
-        v-model="searchQuery"
-      />
-      <select class="filter-select" v-model="monthFilter">
-        <option value="">All Months</option>
-        <option v-for="month in months" :key="month.value" :value="month.value">
-          {{ month.label }}
-        </option>
-      </select>
-      <select class="filter-select" v-model="yearFilter">
-        <option value="">All Years</option>
-        <option v-for="year in years" :key="year" :value="year">
-          {{ year }}
-        </option>
-      </select>
-    </div>
-
-    <!-- Payroll Table -->
-    <div class="table-container">
+    <div class="table-wrapper">
       <table>
         <thead>
           <tr>
-            <th>Employee</th>
-            <th>Period</th>
-            <th>Basic Salary</th>
-            <th>Bonuses</th>
-            <th>Deductions</th>
-            <th>Net Pay</th>
+            <th>ID</th>
+            <th>Full Name</th>
+            <th>Department</th>
+            <th>Position</th>
             <th>Status</th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="record in filteredRecords" :key="record.id">
+          <tr v-for="emp in employees" :key="emp.EmployeeID">
+            <td>{{ emp.EmployeeID }}</td>
+            <td>{{ emp.FullName }}</td>
+            <td>{{ emp.DepartmentName }}</td>
+            <td>{{ emp.PositionName }}</td>
+            <td>{{ emp.Status }}</td>
             <td>
-              <div>{{ record.employeeName }}</div>
-              <div class="employee-id">{{ record.employeeId }}</div>
-            </td>
-            <td>{{ record.month }} {{ record.year }}</td>
-            <td>${{ record.basicSalary.toLocaleString() }}</td>
-            <td>${{ record.bonuses.toLocaleString() }}</td>
-            <td>${{ record.deductions.toLocaleString() }}</td>
-            <td>${{ (record.basicSalary + record.bonuses - record.deductions).toLocaleString() }}</td>
-            <td>
-              <span
-                class="badge"
-                :class="record.status === 'paid' ? 'badge-paid' : 'badge-pending'"
-              >
-                {{ record.status }}
-              </span>
-            </td>
-            <td>
-              <button class="action-button edit" @click="editPayroll(record.id)">
-                Edit
-              </button>
-              <button
-                class="action-button process"
-                @click="processPayroll(record.id)"
-                v-if="record.status === 'pending'"
-              >
-                Process
-              </button>
+              <button class="edit-btn" @click="openEditModal(emp.EmployeeID)">Edit</button>
+              <button class="delete-btn" @click="deleteEmployee(emp.EmployeeID)">Delete</button>
             </td>
           </tr>
         </tbody>
       </table>
     </div>
 
-    <!-- Add Employee Modal -->
-    <div v-if="showAddEmployeeModal" class="modal-overlay">
-      <div class="modal">
-        <h2>Add New Employee</h2>
-        <div class="modal-body">
-          <label>Employee Name</label>
-          <input type="text" v-model="newEmployee.employeeName" class="form-input" />
-          <label>Basic Salary</label>
-          <input type="number" v-model="newEmployee.basicSalary" class="form-input" />
-          <label>Bonuses</label>
-          <input type="number" v-model="newEmployee.bonuses" class="form-input" />
-          <label>Deductions</label>
-          <input type="number" v-model="newEmployee.deductions" class="form-input" />
-          <label>Status</label>
-          <select v-model="newEmployee.status" class="form-input">
-            <option value="paid">Paid</option>
-            <option value="pending">Pending</option>
+    <div v-if="showAddModal" class="modal">
+      <div class="modal-content">
+        <h2>Add Employee</h2>
+        <form @submit.prevent="submitAdd">
+          <input v-model="form.FullName" placeholder="Full Name" required />
+          <input v-model="form.DateOfBirth" type="date" required />
+          
+          <select v-model="form.Gender" required>
+            <option value="">Select Gender</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
           </select>
-        </div>
-        <div class="modal-footer">
-          <button class="cancel-button" @click="showAddEmployeeModal = false">Cancel</button>
-          <button class="save-button" @click="addEmployee">Save</button>
-        </div>
+
+          <input v-model="form.PhoneNumber" placeholder="Phone Number" required />
+          <input v-model="form.Email" type="email" placeholder="Email" required />
+          <input v-model="form.HireDate" type="date" required />
+          <input v-model="form.DepartmentID" type="number" placeholder="Department ID" required />
+          <input v-model="form.PositionID" type="number" placeholder="Position ID" required />
+          <input v-model="form.Status" placeholder="Status" required />
+          <input v-model="form.CreatedAt" type="date" required />
+          <input v-model="form.UpdatedAt" type="date" required />
+
+          <button type="submit">Save</button>
+          <button type="button" @click="showAddModal = false">Cancel</button>
+        </form>
+
+
+
+      </div>
+    </div>
+
+    <div v-if="showEditModal" class="modal">
+      <div class="modal-content">
+        <h2>Edit Employee</h2>
+        <form @submit.prevent="submitEdit">
+          <input v-model="form.DepartmentID" placeholder="Department ID" required />
+          <input v-model="form.PositionID" placeholder="Position ID" required />
+          <input v-model="form.Status" placeholder="Status" required />
+          <button type="submit">Update</button>
+          <button @click="showEditModal = false">Cancel</button>
+        </form>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, onMounted } from 'vue'
+import axios from 'axios'
 
-const payrollRecords = ref([
-  {
-    id: 1,
-    employeeId: 1001,
-    employeeName: 'John Doe',
-    month: 'January',
-    year: 2023,
-    basicSalary: 5000,
-    bonuses: 500,
-    deductions: 200,
-    status: 'paid'
-  },
-  {
-    id: 2,
-    employeeId: 1002,
-    employeeName: 'Jane Smith',
-    month: 'January',
-    year: 2023,
-    basicSalary: 6000,
-    bonuses: 300,
-    deductions: 150,
-    status: 'paid'
-  }
-])
-
-const months = [
-  { value: 'January', label: 'January' },
-  { value: 'February', label: 'February' },
-  { value: 'March', label: 'March' }
-]
-
-const years = [2023, 2022, 2021]
-
-const searchQuery = ref('')
-const monthFilter = ref('')
-const yearFilter = ref('')
-const showAddEmployeeModal = ref(false)
-
-const newEmployee = ref({
-  employeeName: '',
-  basicSalary: 0,
-  bonuses: 0,
-  deductions: 0,
-  status: 'pending'
+const employees = ref([])
+const showAddModal = ref(false)
+const showEditModal = ref(false)
+const selectedEmployeeId = ref(null)
+const form = ref({
+  FullName: '',
+  DateOfBirth: '',
+  Gender: '',
+  PhoneNumber: '',
+  Email: '',
+  HireDate: '',
+  DepartmentID: '',
+  PositionID: '',
+  Status: '',
+  CreatedAt: '',
+  UpdatedAt: ''
 })
 
-const filteredRecords = computed(() => {
-  return payrollRecords.value.filter(record => {
-    const matchesSearch =
-      record.employeeId.toString().includes(searchQuery.value.toLowerCase()) ||
-      record.employeeName.toLowerCase().includes(searchQuery.value.toLowerCase())
-
-    const matchesMonth = !monthFilter.value || record.month === monthFilter.value
-    const matchesYear = !yearFilter.value || record.year.toString() === yearFilter.value
-
-    return matchesSearch && matchesMonth && matchesYear
-  })
-})
-
-function addEmployee() {
-  if (!newEmployee.value.employeeName || newEmployee.value.basicSalary <= 0) {
-    alert('Please fill in all required fields.')
-    return
+const fetchEmployees = async () => {
+  try {
+    const res = await axios.get('http://127.0.0.1:5000/employees-page')
+    employees.value = res.data.employees
+  } catch (error) {
+    alert('Failed to fetch employees')
   }
-
-  const newId = payrollRecords.value.length + 1
-  payrollRecords.value.push({
-    id: newId,
-    employeeId: 1000 + newId,
-    month: 'January',
-    year: 2023,
-    ...newEmployee.value
-  })
-
-  // Reset form and close modal
-  newEmployee.value = {
-    employeeName: '',
-    basicSalary: 0,
-    bonuses: 0,
-    deductions: 0,
-    status: 'pending'
-  }
-  showAddEmployeeModal.value = false
 }
+
+const submitAdd = async () => {
+   // Chuyển đổi DepartmentID và PositionID sang số
+   form.value.DepartmentID = Number(form.value.DepartmentID);
+   form.value.PositionID = Number(form.value.PositionID);
+
+   console.log('Dữ liệu gửi đi:', JSON.stringify(form.value, null, 2)); // In dữ liệu ra console
+
+   try {
+     // Gửi yêu cầu POST với dữ liệu
+     const response = await axios.post('http://127.0.0.1:5000/add-employee', form.value);
+     if (response.data.message) {
+       alert(response.data.message);
+     }
+     showAddModal.value = false;
+     form.value = {};
+     fetchEmployees();
+   } catch (error) {
+     alert('Lỗi khi thêm nhân viên');
+     console.error(error);
+   }
+ };
+
+
+
+const openEditModal = async (id) => {
+  selectedEmployeeId.value = id
+  try {
+    const res = await axios.get(`http://127.0.0.1:5000/cap-nhat-nhan-vien/${id}`)
+    form.value = res.data.employee
+    showEditModal.value = true
+  } catch (err) {
+    alert('Failed to load employee data')
+  }
+}
+
+const submitEdit = async () => {
+  try {
+    await axios.post(`http://127.0.0.1:5000/cap-nhat-nhan-vien/${selectedEmployeeId.value}`, form.value)
+    showEditModal.value = false
+    form.value = {}
+    fetchEmployees()
+  } catch (err) {
+    alert('Failed to update employee')
+  }
+}
+
+const deleteEmployee = async (id) => {
+  if (confirm('Are you sure you want to delete this employee?')) {
+    try {
+      await axios.delete(`http://127.0.0.1:5000/xoa-nhan-vien/${id}`)
+      fetchEmployees()
+    } catch (err) {
+      alert('Cannot delete employee. May have payroll records.')
+    }
+  }
+}
+
+onMounted(fetchEmployees)
 </script>
 
 <style scoped>
-/* Container Styles */
-.payroll-container {
+.employee-container {
   padding: 24px;
-  background-color: #f9fafb; /* Light gray background */
-  min-height: 100vh;
 }
-
-/* Title Styles */
-.payroll-title {
-  font-size: 28px;
+.title {
+  font-size: 24px;
   font-weight: bold;
-  margin-bottom: 24px;
-  color: #1f2937; /* Dark gray */
-  text-align: center;
+  margin-bottom: 20px;
 }
-
-/* Add Employee Button */
-.add-employee-button {
-  background-color: #2563eb; /* Blue */
-  color: white;
-  padding: 12px 20px;
-  border: none;
-  border-radius: 8px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
+.header-actions {
   margin-bottom: 16px;
 }
-
-.add-employee-button:hover {
-  background-color: #1d4ed8; /* Darker blue */
-  transform: translateY(-2px); /* Lift effect */
+.add-button,
+.edit-btn,
+.delete-btn {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
 }
-
-.add-employee-button:active {
-  transform: translateY(0); /* Reset lift effect */
-}
-
-/* Search and Filter Section */
-.search-filter-container {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 24px;
-  flex-wrap: wrap;
-}
-
-.search-input,
-.filter-select {
-  padding: 12px 16px;
-  border: 1px solid #d1d5db; /* Light gray border */
-  border-radius: 8px;
+select {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
   font-size: 14px;
+  color: #3d4553; /* Dark gray text */
+  background-color: #ffffff; /* White background */
+  border: 1px solid #747474; /* Light gray border */
+  border-radius: 4px;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
-
-.search-input:focus,
-.filter-select:focus {
-  border-color: #2563eb; /* Blue border on focus */
-  box-shadow: 0 0 8px rgba(37, 99, 235, 0.5); /* Blue shadow on focus */
-  outline: none;
+.add-button {
+  background-color: #2563eb;
+  color: white;
 }
-
-/* Table Styles */
-.table-container {
-  background-color: #ffffff; /* White background */
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
-  overflow: hidden;
+.edit-btn {
+  background-color: #f59e0b;
+  color: white;
+  margin-right: 8px;
 }
-
+.delete-btn {
+  background-color: #ef4444;
+  color: white;
+}
+.table-wrapper {
+  overflow-x: auto;
+  margin-top: 20px;
+}
 table {
   width: 100%;
   border-collapse: collapse;
 }
-
-thead {
-  background-color: #f3f4f6; /* Light gray background */
-}
-
-th {
-  text-align: left;
-  font-size: 14px;
-  font-weight: 600;
-  text-transform: uppercase;
-  color: #6b7280; /* Gray text */
-  padding: 12px;
-}
-
-tbody tr {
-  border-bottom: 1px solid #e5e7eb; /* Light gray border */
-  transition: background-color 0.2s ease;
-}
-
-tbody tr:hover {
-  background-color: #f9fafb; /* Light hover effect */
-}
-
+th,
 td {
   padding: 12px;
-  font-size: 14px;
-  color: #374151; /* Dark gray text */
+  border: 1px solid #ddd;
+  text-align: left;
 }
-
-.badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4px 8px;
-  font-size: 12px;
-  font-weight: 600;
-  border-radius: 12px;
-}
-
-.badge-paid {
-  background-color: #d1fae5; /* Light green */
-  color: #065f46; /* Dark green */
-}
-
-.badge-pending {
-  background-color: #fef3c7; /* Light yellow */
-  color: #92400e; /* Dark yellow */
-}
-
-/* Modal Styles */
-.modal-overlay {
+.modal {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
 }
-
-.modal {
-  background-color: #ffffff;
+.modal-content {
+  background: white;
   padding: 24px;
-  border-radius: 12px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); /* Stronger shadow */
-  width: 400px;
-  animation: fadeIn 0.3s ease-in-out;
+  border-radius: 8px;
+  min-width: 300px;
 }
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-.modal-body label {
+.modal-content form input {
   display: block;
-  font-size: 14px;
-  font-weight: 500;
-  color: #374151; /* Gray */
-  margin-bottom: 8px;
-}
-
-.modal-body input,
-.modal-body select {
-  width: 90%;
-  padding: 12px 16px;
-  border: 1px solid #d1d5db; /* Light gray border */
-  border-radius: 8px;
-  font-size: 14px;
-  margin-bottom: 16px;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
-}
-
-.modal-body input:focus,
-.modal-body select:focus {
-  border-color: #2563eb; /* Blue border on focus */
-  box-shadow: 0 0 8px rgba(37, 99, 235, 0.5); /* Blue shadow on focus */
-  outline: none;
-}
-
-.modal-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-}
-
-.cancel-button {
-  background-color: #9ca3af; /* Gray */
-  color: white;
-  padding: 10px 16px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.cancel-button:hover {
-  background-color: #6b7280; /* Darker gray */
-}
-
-.save-button {
-  background-color: #2563eb; /* Blue */
-  color: white;
-  padding: 10px 16px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
-}
-
-.save-button:hover {
-  background-color: #1d4ed8; /* Darker blue */
-  transform: translateY(-2px); /* Lift effect */
-}
-
-.save-button:active {
-  transform: translateY(0); /* Reset lift effect */
+  margin-bottom: 12px;
+  width: 100%;
+  padding: 8px;
 }
 </style>
