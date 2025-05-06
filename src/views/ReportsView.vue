@@ -1,263 +1,467 @@
 <template>
   <div class="reports-container">
     <h1 class="reports-title">Reports & Analytics</h1>
-    
-    <!-- Employee Summary -->
+
     <div class="grid-container">
       <div class="report-card">
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="text-lg font-semibold">Employee Summary</h2>
-          <select class="select-input" v-model="employeeSummaryFilter">
+        <div class="report-header">
+          <h2 class="report-title">Employee Summary</h2>
+          <select class="report-filter" v-model="employeeSummaryFilter">
             <option value="30">Last 30 Days</option>
             <option value="90">Last Quarter</option>
             <option value="365">Last Year</option>
           </select>
         </div>
-        <div class="chart-placeholder">
-          <p>Employee summary chart will be displayed here</p>
+        <div class="chart-container">
+          <canvas id="employeeSummaryChart"></canvas>
+          <p v-if="!chartDataAvailable.employeeSummary" class="no-data-message">No employee data available for the selected period.</p>
         </div>
       </div>
 
-      <!-- Payroll Summary -->
       <div class="report-card">
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="text-lg font-semibold">Payroll Summary</h2>
-          <select class="select-input" v-model="payrollSummaryFilter">
+        <div class="report-header">
+          <h2 class="report-title">Payroll Summary</h2>
+          <select class="report-filter" v-model="payrollSummaryFilter">
             <option value="30">Last 30 Days</option>
             <option value="90">Last Quarter</option>
             <option value="365">Last Year</option>
           </select>
         </div>
-        <div class="chart-placeholder">
-          <p>Payroll summary chart will be displayed here</p>
+        <div class="chart-container">
+          <canvas id="payrollSummaryChart"></canvas>
+           <p v-if="!chartDataAvailable.payrollSummary" class="no-data-message">No payroll data available for the selected period.</p>
         </div>
       </div>
     </div>
 
-    <!-- Department Distribution -->
     <div class="report-card">
-      <div class="flex justify-between items-center mb-4">
-        <h2 class="text-lg font-semibold">Department Distribution</h2>
-        <select class="select-input" v-model="departmentDistributionFilter">
+      <div class="report-header">
+        <h2 class="report-title">Department Distribution</h2>
+        <select class="report-filter" v-model="departmentDistributionFilter">
           <option value="current">Current Month</option>
           <option value="last">Last Month</option>
           <option value="quarter">Last Quarter</option>
         </select>
       </div>
-      <div class="chart-placeholder">
-        <p>Department distribution chart will be displayed here</p>
+      <div class="chart-container">
+        <canvas id="departmentDistributionChart"></canvas>
+        <p v-if="!chartDataAvailable.departmentDistribution" class="no-data-message">No department data available for the selected period.</p>
       </div>
     </div>
 
-    <!-- Generate Reports -->
-    <div class="grid-container">
-      <div class="report-card">
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="text-lg font-semibold">Generate Employee Report</h2>
-          <button class="report-button" @click="generateEmployeeReport">Generate</button>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Report Type</label>
-          <select class="select-input" v-model="employeeReportType">
-            <option value="full">Full Employee List</option>
-            <option value="department">Department-wise</option>
-            <option value="newHires">New Hires</option>
-            <option value="terminations">Terminations</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Date Range</label>
-          <div class="grid-container">
-            <input type="date" class="form-input" v-model="employeeReportStartDate">
-            <input type="date" class="form-input" v-model="employeeReportEndDate">
-          </div>
-        </div>
-      </div>
+    <div class="report-generation-section">
+        <h2>Generate Reports</h2>
+        <div class="grid-container">
+            <div class="report-card">
+                <div class="report-header">
+                    <h3 class="report-title">Generate Employee Report</h3>
+                    <button class="generate-button" @click="generateEmployeeReport">Generate</button>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Report Type</label>
+                    <select class="select-input" v-model="employeeReportType">
+                        <option value="full">Full Employee List</option>
+                        <option value="department">Department-wise</option>
+                        <option value="newHires">New Hires</option>
+                        <option value="terminations">Terminations</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Date Range</label>
+                    <div class="date-range-inputs">
+                        <input type="date" class="date-input" v-model="employeeReportStartDate" placeholder="Start Date">
+                        <input type="date" class="date-input" v-model="employeeReportEndDate" placeholder="End Date">
+                    </div>
+                </div>
+            </div>
 
-      <div class="report-card">
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="text-lg font-semibold">Generate Payroll Report</h2>
-          <button class="report-button" @click="generatePayrollReport">Generate</button>
+            <div class="report-card">
+                <div class="report-header">
+                    <h3 class="report-title">Generate Payroll Report</h3>
+                    <button class="generate-button" @click="generatePayrollReport">Generate</button>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Report Type</label>
+                    <select class="select-input" v-model="payrollReportType">
+                        <option value="monthly">Monthly Payroll</option>
+                        <option value="quarterly">Quarterly Summary</option>
+                        <option value="yearly">Yearly Tax Report</option>
+                        <option value="bonus">Bonus Payments</option>
+                    </select>
+                </div>
+                 <div class="form-group">
+                    <label class="form-label">Period</label>
+                    <select class="select-input" v-model="payrollReportPeriod">
+                        <option v-for="month in months" :key="month.value" :value="month.value">
+                            {{ month.label }}
+                        </option>
+                    </select>
+                </div>
+            </div>
         </div>
-        <div class="form-group">
-          <label class="form-label">Report Type</label>
-          <select class="select-input" v-model="payrollReportType">
-            <option value="monthly">Monthly Payroll</option>
-            <option value="quarterly">Quarterly Summary</option>
-            <option value="yearly">Yearly Tax Report</option>
-            <option value="bonus">Bonus Payments</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Period</label>
-          <select class="select-input" v-model="payrollReportPeriod">
-            <option v-for="month in months" :key="month.value" :value="month.value">
-              {{ month.label }}
-            </option>
-          </select>
-        </div>
-      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, watch } from 'vue';
+import { Chart, registerables } from 'chart.js';
 
-// Filters for charts
-const employeeSummaryFilter = ref('30')
-const payrollSummaryFilter = ref('30')
-const departmentDistributionFilter = ref('current')
+Chart.register(...registerables);
 
-// Employee report data
-const employeeReportType = ref('full')
-const employeeReportStartDate = ref('')
-const employeeReportEndDate = ref('')
+const employeeSummaryFilter = ref('30');
+const payrollSummaryFilter = ref('30');
+const departmentDistributionFilter = ref('current');
 
-// Payroll report data
-const payrollReportType = ref('monthly')
-const payrollReportPeriod = ref('January 2023')
+// Report generation
+const employeeReportType = ref('full');
+const employeeReportStartDate = ref('');
+const employeeReportEndDate = ref('');
 
-// Mock data for months
+const payrollReportType = ref('monthly');
+const payrollReportPeriod = ref('January 2023');
+
 const months = [
-  { value: 'January 2023', label: 'January 2023' },
-  { value: 'February 2023', label: 'February 2023' },
-  { value: 'March 2023', label: 'March 2023' },
-  // Add more months as needed
-]
+    { value: 'January 2023', label: 'January 2023' },
+    { value: 'February 2023', label: 'February 2023' },
+    { value: 'March 2023', label: 'March 2023' },
+];
+
+// Refs for the charts
+const employeeSummaryChartRef = ref(null);
+const payrollSummaryChartRef = ref(null);
+const departmentDistributionChartRef = ref(null);
+
+const chartDataAvailable = ref({
+    employeeSummary: false,
+    payrollSummary: false,
+    departmentDistribution: false,
+});
+
+onMounted(() => {
+    renderEmployeeSummaryChart();
+    renderPayrollSummaryChart();
+    renderDepartmentDistributionChart();
+});
+
+// Watch for filter changes and update charts
+watch(employeeSummaryFilter, () => {
+    renderEmployeeSummaryChart();
+});
+watch(payrollSummaryFilter, () => {
+    renderPayrollSummaryChart();
+});
+watch(departmentDistributionFilter, () => {
+    renderDepartmentDistributionChart();
+});
 
 function generateEmployeeReport() {
-  if (!employeeReportStartDate.value || !employeeReportEndDate.value) {
-    alert('Please select a valid date range for the employee report.')
-    return
-  }
-  alert(`Generating ${employeeReportType.value} report from ${employeeReportStartDate.value} to ${employeeReportEndDate.value}.`)
+    if (!employeeReportStartDate.value || !employeeReportEndDate.value) {
+        alert('Please select a valid date range for the employee report.');
+        return;
+    }
+    alert(`Generating ${employeeReportType.value} report from ${employeeReportStartDate.value} to ${employeeReportEndDate.value}.`);
+    // Call API to generate report
 }
 
 function generatePayrollReport() {
-  alert(`Generating ${payrollReportType.value} report for ${payrollReportPeriod.value}.`)
+    alert(`Generating ${payrollReportType.value} report for ${payrollReportPeriod.value}.`);
+      // Call API to generate report
+}
+
+// Chart rendering functions (Mock data for demonstration)
+function renderEmployeeSummaryChart() {
+    const ctx = document.getElementById('employeeSummaryChart');
+    if (!ctx) return;
+
+    // Mock data - Replace with actual data from API
+    const chartData = {
+        labels: ['New Hires', 'Terminations', 'Active Employees'],
+        datasets: [{
+            label: 'Employee Summary',
+            data: employeeSummaryFilter.value === '30' ? [10, 5, 100] :
+                    employeeSummaryFilter.value === '90' ? [30, 15, 300] :
+                    [120, 60, 1200],
+            backgroundColor: [
+                'rgba(54, 162, 235, 0.6)',
+                'rgba(255, 99, 132, 0.6)',
+                'rgba(75, 192, 192, 0.6)',
+            ],
+            borderWidth: 1,
+        }],
+    };
+
+    if (chartData.datasets[0].data.reduce((a, b) => a + b, 0) === 0) {
+        chartDataAvailable.employeeSummary = false;
+        if (employeeSummaryChartRef.value) {
+            employeeSummaryChartRef.value.destroy();
+            employeeSummaryChartRef.value = null;
+        }
+        return;
+    }
+    chartDataAvailable.employeeSummary = true;
+
+    if (employeeSummaryChartRef.value) {
+        employeeSummaryChartRef.value.destroy();
+    }
+
+    employeeSummaryChartRef.value = new Chart(ctx, {
+        type: 'pie',
+        data: chartData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    position: 'top'
+                },
+            },
+        },
+    });
+}
+
+function renderPayrollSummaryChart() {
+    const ctx = document.getElementById('payrollSummaryChart');
+    if (!ctx) return;
+
+    // Mock data
+    const chartData = {
+        labels: ['Total Salary', 'Total Bonuses', 'Total Deductions'],
+        datasets: [{
+            label: 'Payroll Summary',
+            data: payrollSummaryFilter.value === '30' ? [150000, 10000, 5000] :
+                    payrollSummaryFilter.value === '90' ? [450000, 30000, 15000] :
+                    [1800000, 120000, 60000],
+            backgroundColor: [
+                'rgba(255, 206, 86, 0.6)',
+                'rgba(75, 192, 192, 0.6)',
+                'rgba(255, 159, 64, 0.6)',
+            ],
+            borderWidth: 1,
+        }],
+    };
+
+    if (chartData.datasets[0].data.reduce((a, b) => a + b, 0) === 0) {
+        chartDataAvailable.payrollSummary = false;
+        if (payrollSummaryChartRef.value) {
+            payrollSummaryChartRef.value.destroy();
+            payrollSummaryChartRef.value = null;
+        }
+        return;
+    }
+
+    chartDataAvailable.payrollSummary = true;
+
+    if (payrollSummaryChartRef.value) {
+        payrollSummaryChartRef.value.destroy();
+    }
+
+    payrollSummaryChartRef.value = new Chart(ctx, {
+        type: 'bar',
+        data: chartData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'top'
+                },
+            },
+        },
+    });
+}
+
+function renderDepartmentDistributionChart() {
+    const ctx = document.getElementById('departmentDistributionChart');
+    if (!ctx) return;
+  // Mock Data
+    const chartData = {
+        labels: ['HR', 'Engineering', 'Sales', 'Marketing'],
+        datasets: [{
+            label: 'Department Distribution',
+            data:
+                departmentDistributionFilter.value === 'current' ? [20, 30, 25, 15] :
+                departmentDistributionFilter.value === 'last' ? [18, 28, 22, 12] :
+                [22, 32, 28, 18],
+            backgroundColor: [
+                'rgba(255, 99, 132, 0.6)',
+                'rgba(54, 162, 235, 0.6)',
+                'rgba(255, 206, 86, 0.6)',
+                'rgba(75, 192, 192, 0.6)',
+            ],
+            borderWidth: 1,
+        }],
+    };
+
+    if (chartData.datasets[0].data.reduce((a, b) => a + b, 0) === 0) {
+        chartDataAvailable.departmentDistribution = false;
+         if (departmentDistributionChartRef.value) {
+            departmentDistributionChartRef.value.destroy();
+            departmentDistributionChartRef.value = null;
+        }
+        return;
+    }
+    chartDataAvailable.departmentDistribution = true;
+
+    if (departmentDistributionChartRef.value) {
+        departmentDistributionChartRef.value.destroy();
+    }
+
+    departmentDistributionChartRef.value = new Chart(ctx, {
+        type: 'doughnut',
+        data: chartData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    position: 'top'
+                },
+            },
+        },
+    });
 }
 </script>
 <style scoped>
-/* Container Styles */
 .reports-container {
   padding: 24px;
-  background-color: #0f6507; /* Light gray background */
+  background-color: #f9fafb;
 }
 
-/* Title Styles */
 .reports-title {
-  font-size: 24px;
+  font-size: 28px;
   font-weight: bold;
   margin-bottom: 24px;
-  color: #111827; /* Dark text */
+  color: #1f2937;
+  text-align: center;
 }
 
-/* Card Styles */
+.grid-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+@media (min-width: 1024px) {
+  .grid-container {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
 .report-card {
-  background-color: #ffffff; /* White background */
+  background-color: #fff;
   padding: 24px;
   border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.report-card:hover {
-  transform: translateY(-4px); /* Lift effect on hover */
-  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15); /* Stronger shadow on hover */
-}
-
-/* Chart Placeholder */
-.chart-placeholder {
-  height: 200px;
+.report-header {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
-  color: #9ca3af; /* Light gray text */
-  background-color: #f3f4f6; /* Light gray background */
-  border-radius: 8px;
-  margin-top: 16px;
+  margin-bottom: 16px;
 }
 
-/* Select Styles */
-.select-input {
-  padding: 10px 14px;
-  border: 1px solid #d1d5db; /* Light gray border */
+.report-title {
+  font-size: 20px;
+  font-weight: bold;
+  color: #1f2937;
+}
+
+.report-filter {
+  padding: 10px;
+  border: 1px solid #d1d5db;
   border-radius: 8px;
   font-size: 14px;
-  color: #374151; /* Gray text */
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  color: #374151;
+  transition: border-color 0.3s ease;
+  min-width: 180px;
 }
 
-.select-input:focus {
-  border-color: #2563eb; /* Blue border on focus */
-  box-shadow: 0 0 8px rgba(37, 99, 235, 0.5); /* Blue shadow on focus */
+.report-filter:focus {
   outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-/* Button Styles */
-.report-button {
-  background-color: #2563eb; /* Blue */
-  color: #ffffff;
-  padding: 10px 16px;
-  font-size: 14px;
-  font-weight: 600;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
+.chart-container {
+  position: relative;
+  width: 100%;
+  height: 300px;
 }
 
-.report-button:hover {
-  background-color: #1d4ed8; /* Darker blue */
-  transform: translateY(-2px); /* Lift effect */
-}
-
-.report-button:active {
-  transform: translateY(0); /* Reset lift effect */
-}
-
-/* Form Styles */
 .form-group {
   margin-bottom: 16px;
 }
 
 .form-label {
+  display: block;
   font-size: 14px;
   font-weight: 500;
-  color: #374151; /* Gray */
+  color: #374151;
   margin-bottom: 8px;
-  display: block;
 }
 
-.form-input {
-  padding: 10px 14px;
-  border: 1px solid #d1d5db; /* Light gray border */
+.select-input,
+.date-input {
+  padding: 10px;
+  border: 1px solid #d1d5db;
   border-radius: 8px;
   font-size: 14px;
-  color: #374151; /* Gray text */
+  color: #374151;
   width: 100%;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  transition: border-color 0.3s ease;
 }
 
-.form-input:focus {
-  border-color: #2563eb; /* Blue border on focus */
-  box-shadow: 0 0 8px rgba(37, 99, 235, 0.5); /* Blue shadow on focus */
+.select-input:focus,
+.date-input:focus {
   outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-/* Grid Layout */
-.grid-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+.date-range-inputs {
+  display: flex;
   gap: 16px;
-  margin-bottom: 32px;
+  flex-wrap: wrap;
 }
 
-/* Responsive Design */
-@media (min-width: 1024px) {
-  .grid-container {
-    grid-template-columns: repeat(2, 1fr);
-  }
+
+.generate-button {
+  background-color: #3b82f6;
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  border: none;
+}
+
+.generate-button:hover {
+  background-color: #2563eb;
+}
+
+.report-generation-section {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e5e7eb;
+}
+
+.no-data-message {
+    text-align: center;
+    color: #9ca3af;
+    padding: 1rem;
+    border-radius: 8px;
+    background-color: #f9fafb;
+    border: 1px solid #d1d5db;
+    margin-top: 1rem;
 }
 </style>

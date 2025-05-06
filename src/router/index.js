@@ -27,9 +27,9 @@ const routes = [
     meta: { requiresAuth: true, allowedRoles: ['admin', 'payroll_manager'] }
   },
   {
-    path: '/departments',
-    name: 'Departments',
-    component: () => import('@/views/DepartmentsView.vue'),
+    path: '/warning&notification',
+    name: 'Warning&Notification',
+    component: () => import('@/views/Warning&NotificationView.vue'), // Fixed component import
     meta: { requiresAuth: true, allowedRoles: ['admin'] }
   },
   {

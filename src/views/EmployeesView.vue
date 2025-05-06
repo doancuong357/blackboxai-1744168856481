@@ -2,6 +2,15 @@
   <div class="employee-container">
     <h1 class="title">Employee Management</h1>
 
+    <div class="search-filter-container">
+      <input
+        type="text"
+        placeholder="Search by ID, Name, Department, Position..."
+        v-model="searchQuery"
+        class="search-input"
+      />
+    </div>
+
     <div class="header-actions">
       <button class="add-button" @click="showAddModal = true">
         Add Employee
@@ -21,15 +30,22 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="emp in employees" :key="emp.EmployeeID">
+          <tr v-for="emp in filteredEmployees" :key="emp.EmployeeID">
             <td>{{ emp.EmployeeID }}</td>
             <td>{{ emp.FullName }}</td>
             <td>{{ emp.DepartmentName }}</td>
             <td>{{ emp.PositionName }}</td>
             <td>{{ emp.Status }}</td>
             <td>
-              <button class="edit-btn" @click="openEditModal(emp.EmployeeID)">Edit</button>
-              <button class="delete-btn" @click="deleteEmployee(emp.EmployeeID)">Delete</button>
+              <button class="edit-btn" @click="openEditModal(emp.EmployeeID)">
+                Edit
+              </button>
+              <button
+                class="delete-btn"
+                @click="deleteEmployee(emp.EmployeeID)"
+              >
+                Delete
+              </button>
             </td>
           </tr>
         </tbody>
@@ -42,7 +58,7 @@
         <form @submit.prevent="submitAdd">
           <input v-model="form.FullName" placeholder="Full Name" required />
           <input v-model="form.DateOfBirth" type="date" required />
-          
+
           <select v-model="form.Gender" required>
             <option value="">Select Gender</option>
             <option value="Male">Male</option>
@@ -52,8 +68,18 @@
           <input v-model="form.PhoneNumber" placeholder="Phone Number" required />
           <input v-model="form.Email" type="email" placeholder="Email" required />
           <input v-model="form.HireDate" type="date" required />
-          <input v-model="form.DepartmentID" type="number" placeholder="Department ID" required />
-          <input v-model="form.PositionID" type="number" placeholder="Position ID" required />
+          <input
+            v-model="form.DepartmentID"
+            type="number"
+            placeholder="Department ID"
+            required
+          />
+          <input
+            v-model="form.PositionID"
+            type="number"
+            placeholder="Position ID"
+            required
+          />
           <input v-model="form.Status" placeholder="Status" required />
           <input v-model="form.CreatedAt" type="date" required />
           <input v-model="form.UpdatedAt" type="date" required />
@@ -61,9 +87,6 @@
           <button type="submit">Save</button>
           <button type="button" @click="showAddModal = false">Cancel</button>
         </form>
-
-
-
       </div>
     </div>
 
@@ -71,8 +94,16 @@
       <div class="modal-content">
         <h2>Edit Employee</h2>
         <form @submit.prevent="submitEdit">
-          <input v-model="form.DepartmentID" placeholder="Department ID" required />
-          <input v-model="form.PositionID" placeholder="Position ID" required />
+          <input
+            v-model="form.DepartmentID"
+            placeholder="Department ID"
+            required
+          />
+          <input
+            v-model="form.PositionID"
+            placeholder="Position ID"
+            required
+          />
           <input v-model="form.Status" placeholder="Status" required />
           <button type="submit">Update</button>
           <button @click="showEditModal = false">Cancel</button>
@@ -83,7 +114,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import axios from 'axios'
 
 const employees = ref([])
@@ -103,6 +134,7 @@ const form = ref({
   CreatedAt: '',
   UpdatedAt: ''
 })
+const searchQuery = ref('')
 
 const fetchEmployees = async () => {
   try {
@@ -114,28 +146,32 @@ const fetchEmployees = async () => {
 }
 
 const submitAdd = async () => {
-   // Chuyển đổi DepartmentID và PositionID sang số
-   form.value.DepartmentID = Number(form.value.DepartmentID);
-   form.value.PositionID = Number(form.value.PositionID);
+  // Chuyển đổi DepartmentID và PositionID sang số
+  form.value.DepartmentID = Number(form.value.DepartmentID)
+  form.value.PositionID = Number(form.value.PositionID)
 
-   console.log('Dữ liệu gửi đi:', JSON.stringify(form.value, null, 2)); // In dữ liệu ra console
+  console.log(
+    'Dữ liệu gửi đi:',
+    JSON.stringify(form.value, null, 2)
+  ) // In dữ liệu ra console
 
-   try {
-     // Gửi yêu cầu POST với dữ liệu
-     const response = await axios.post('http://127.0.0.1:5000/add-employee', form.value);
-     if (response.data.message) {
-       alert(response.data.message);
-     }
-     showAddModal.value = false;
-     form.value = {};
-     fetchEmployees();
-   } catch (error) {
-     alert('Lỗi khi thêm nhân viên');
-     console.error(error);
-   }
- };
-
-
+  try {
+    // Gửi yêu cầu POST với dữ liệu
+    const response = await axios.post(
+      'http://127.0.0.1:5000/add-employee',
+      form.value
+    )
+    if (response.data.message) {
+      alert(response.data.message)
+    }
+    showAddModal.value = false
+    form.value = {}
+    fetchEmployees()
+  } catch (error) {
+    alert('Lỗi khi thêm nhân viên')
+    console.error(error)
+  }
+}
 
 const openEditModal = async (id) => {
   selectedEmployeeId.value = id
@@ -150,7 +186,10 @@ const openEditModal = async (id) => {
 
 const submitEdit = async () => {
   try {
-    await axios.post(`http://127.0.0.1:5000/cap-nhat-nhan-vien/${selectedEmployeeId.value}`, form.value)
+    await axios.post(
+      `http://127.0.0.1:5000/cap-nhat-nhan-vien/${selectedEmployeeId.value}`,
+      form.value
+    )
     showEditModal.value = false
     form.value = {}
     fetchEmployees()
@@ -169,6 +208,18 @@ const deleteEmployee = async (id) => {
     }
   }
 }
+
+const filteredEmployees = computed(() => {
+  return employees.value.filter((emp) => {
+    const searchLower = searchQuery.value.toLowerCase()
+    return (
+      emp.EmployeeID.toString().includes(searchLower) ||
+      emp.FullName.toLowerCase().includes(searchLower) ||
+      emp.DepartmentName.toLowerCase().includes(searchLower) ||
+      emp.PositionName.toLowerCase().includes(searchLower)
+    )
+  })
+})
 
 onMounted(fetchEmployees)
 </script>
@@ -198,9 +249,9 @@ select {
   width: 100%;
   padding: 8px 12px;
   font-size: 14px;
-  color: #3d4553; /* Dark gray text */
-  background-color: #ffffff; /* White background */
-  border: 1px solid #747474; /* Light gray border */
+  color: #3d4553;
+  background-color: #ffffff;
+  border: 1px solid #747474;
   border-radius: 4px;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
@@ -253,5 +304,16 @@ td {
   margin-bottom: 12px;
   width: 100%;
   padding: 8px;
+}
+.search-filter-container {
+  margin-bottom: 16px;
+}
+
+.search-input {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  width: 100%;
+  max-width: 400px;
 }
 </style>
