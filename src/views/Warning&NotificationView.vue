@@ -1,333 +1,232 @@
 <template>
-  <div class="departments-container">
-    <!-- Header Section -->
-    <div class="header">
-      <h1 class="departments-title">Department & Job Title Management</h1>
-      <div class="header-buttons">
-        <button class="add-button" @click="toggleModal('department', true)">
-          Add Department
-        </button>
-        <button class="add-button" @click="toggleModal('jobTitle', true)">
-          Add Job Title
-        </button>
-      </div>
+  <div class="warning-view">
+    <h1>Warnings & Notifications</h1>
+
+    <!-- Work Anniversary Warnings -->
+    <div v-if="upcomingAnniversaries.length">
+      <h2>Work Anniversary Warnings:</h2>
+      <ul>
+        <li v-for="employee in upcomingAnniversaries" :key="employee.EmployeeID">
+          <strong>{{ employee.FullName }}</strong> sẽ kỷ niệm {{ employee.DaysUntilAnniversary }} ngày làm việc vào ngày {{ employee.HireDate }}.
+        </li>
+      </ul>
     </div>
 
-    <!-- Departments Section -->
-    <div class="grid-container">
-      <div class="section-card">
-        <div class="section-header">
-          <h2>Departments</h2>
-        </div>
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Head Count</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="dept in departments" :key="dept.id">
-              <td>{{ dept.name }}</td>
-              <td>{{ dept.employeeCount }}</td>
-              <td>
-                <button class="action-button edit" @click="editDepartment(dept.id)">
-                  Edit
-                </button>
-                <button class="action-button delete" @click="confirmDelete('department', dept.id)">
-                  Delete
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Job Titles Section -->
-      <div class="section-card">
-        <div class="section-header">
-          <h2>Job Titles</h2>
-        </div>
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Title</th>
-              <th>Department</th>
-              <th>Employees</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="job in jobTitles" :key="job.id">
-              <td>{{ job.title }}</td>
-              <td>{{ job.department }}</td>
-              <td>{{ job.employeeCount }}</td>
-              <td>
-                <button class="action-button edit" @click="editJobTitle(job.id)">
-                  Edit
-                </button>
-                <button class="action-button delete" @click="confirmDelete('jobTitle', job.id)">
-                  Delete
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+    <!-- Excessive Leave Warnings -->
+    <div v-if="excessiveLeaveRequests.length">
+      <h2>Excessive Leave Warnings (Month {{ currentMonth }}):</h2>
+      <ul>
+        <li v-for="employee in excessiveLeaveRequests" :key="employee.EmployeeID">
+          <strong>{{ employee.FullName }}</strong> đã sử dụng quá nhiều ngày nghỉ ({{ employee.TotalLeaveDays }} days).
+        </li>
+      </ul>
     </div>
 
-    <!-- Add Department Modal -->
-    <Modal
-      v-if="showAddDepartmentModal"
-      title="Add New Department"
-      @close="toggleModal('department', false)"
-      @save="addDepartment"
-    >
-      <div>
-        <label class="form-label">Department Name</label>
-        <input type="text" class="form-input" v-model="newDepartment.name" />
-      </div>
-    </Modal>
+    <!-- Salary Discrepancy Warnings -->
+    <div v-if="salaryDiscrepancies.length">
+      <h2>Salary Discrepancy Warnings:</h2>
+      <ul>
+        <li v-for="employee in salaryDiscrepancies" :key="employee.EmployeeID">
+          <strong>{{ employee.FullName }}</strong> có sự thay đổi lương lớn giữa hai kỳ:
+          <br>
+          <strong>Tháng Trước:</strong> {{ employee.PreviousSalary }} VND
+          <br>
+          <strong>Tháng hiện tại:</strong> {{ employee.CurrentSalary }} VND
+          <br>
+          <strong>Chênh Lệch:</strong> {{ employee.DifferencePercent }} %
+        </li>
+      </ul>
+    </div>
 
-    <!-- Add Job Title Modal -->
-    <Modal
-      v-if="showAddJobTitleModal"
-      title="Add New Job Title"
-      @close="toggleModal('jobTitle', false)"
-      @save="addJobTitle"
-    >
-      <div>
-        <label class="form-label">Job Title</label>
-        <input type="text" class="form-input" v-model="newJobTitle.title" />
-      </div>
-      <div>
-        <label class="form-label">Department</label>
-        <select class="form-input" v-model="newJobTitle.departmentId">
-          <option v-for="dept in departments" :key="dept.id" :value="dept.id">
-            {{ dept.name }}
-          </option>
-        </select>
-      </div>
-    </Modal>
+    <!-- Send Salary Notifications Button -->
+    <div>
+      <button @click="sendSalaryEmails">Send Salary Notifications</button>
+    </div>
   </div>
 </template>
 
-<script setup>
-import { ref } from 'vue'
-import Modal from '@/components/common/Modal.vue'
+<script>
+import axios from 'axios';
 
-// Mock data
-const departments = ref([
-  { id: 1, name: 'Engineering', employeeCount: 24 },
-  { id: 2, name: 'HR', employeeCount: 5 },
-  { id: 3, name: 'Finance', employeeCount: 8 },
-  { id: 4, name: 'Marketing', employeeCount: 12 }
-])
+export default {
+  data() {
+    return {
+      upcomingAnniversaries: [],
+      excessiveLeaveRequests: [],
+      salaryDiscrepancies: [],
+      currentMonth: '', // Store the current month
+    };
+  },
+  methods: {
+    // Send salary notifications via email (simulated)
+    sendSalaryEmails() {
+      axios.get('http://127.0.0.1:5000/send-salary-emails')
+        .then(response => {
+          this.$toast.success('Salary notifications have been sent to all employees.');
+        })
+        .catch(error => {
+          this.$toast.error('There was an error sending salary notifications.');
+        });
+    },
 
-const jobTitles = ref([
-  { id: 1, title: 'Software Engineer', department: 'Engineering', employeeCount: 15 },
-  { id: 2, title: 'HR Manager', department: 'HR', employeeCount: 2 },
-  { id: 3, title: 'Accountant', department: 'Finance', employeeCount: 4 },
-  { id: 4, title: 'Marketing Specialist', department: 'Marketing', employeeCount: 6 }
-])
+    // Fetch data for upcoming work anniversaries
+    fetchUpcomingAnniversaries() {
+      axios.get('http://127.0.0.1:5000/employee-anniversary-warning')
+        .then(response => {
+          this.upcomingAnniversaries = response.data;
+        })
+        .catch(error => {
+          console.error('Error fetching work anniversary data:', error);
+        });
+    },
 
-const showAddDepartmentModal = ref(false)
-const showAddJobTitleModal = ref(false)
+    // Fetch data for excessive leave requests
+    fetchExcessiveLeaveRequests() {
+      axios.get('http://127.0.0.1:5000/leave-days-warning')
+        .then(response => {
+          this.excessiveLeaveRequests = response.data.employees_with_warning;
+          this.currentMonth = response.data.current_month; // Store the current month
+        })
+        .catch(error => {
+          console.error('Error fetching leave request data:', error);
+        });
+    },
 
-const newDepartment = ref({ name: '' })
-const newJobTitle = ref({ title: '', departmentId: '' })
-
-function toggleModal(type, value) {
-  if (type === 'department') showAddDepartmentModal.value = value
-  if (type === 'jobTitle') showAddJobTitleModal.value = value
-}
-
-function addDepartment() {
-  if (!newDepartment.value.name.trim()) return alert('Department name is required!')
-  departments.value.push({
-    id: departments.value.length + 1,
-    name: newDepartment.value.name,
-    employeeCount: 0
-  })
-  newDepartment.value.name = ''
-  toggleModal('department', false)
-}
-
-function addJobTitle() {
-  if (!newJobTitle.value.title.trim() || !newJobTitle.value.departmentId) {
-    return alert('Job title and department are required!')
-  }
-  const department = departments.value.find(d => d.id == newJobTitle.value.departmentId)
-  jobTitles.value.push({
-    id: jobTitles.value.length + 1,
-    title: newJobTitle.value.title,
-    department: department.name,
-    employeeCount: 0
-  })
-  newJobTitle.value.title = ''
-  newJobTitle.value.departmentId = ''
-  toggleModal('jobTitle', false)
-}
+    // Fetch data for salary discrepancies
+    fetchSalaryDiscrepancies() {
+      axios.get('http://127.0.0.1:5000/salary-alerts')
+        .then(response => {
+          this.salaryDiscrepancies = response.data.alerts;
+        })
+        .catch(error => {
+          console.error('Error fetching salary discrepancy data:', error);
+        });
+    },
+  },
+  mounted() {
+    this.fetchUpcomingAnniversaries();
+    this.fetchExcessiveLeaveRequests();
+    this.fetchSalaryDiscrepancies();
+  },
+};
 </script>
 
 <style scoped>
-/* Container Styles */
-.departments-container {
-  padding: 24px;
-  background-color: #f9fafb;
-}
-
-/* Header Styles */
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-}
-
-.departments-title {
-  font-size: 24px;
-  font-weight: bold;
-  color: #111827;
-}
-
-.header-buttons {
-  display: flex;
-  gap: 8px;
-}
-
-.add-button {
-  background-color: #2563eb;
-  color: white;
-  padding: 10px 16px;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.add-button:hover {
-  background-color: #1d4ed8;
-}
-
-/* Grid Layout */
-.grid-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 16px;
-}
-
-/* Section Card */
-.section-card {
-  background-color: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-}
-
-.section-header {
-  padding: 16px;
-  border-bottom: 1px solid #e5e7eb;
-  font-size: 18px;
-  font-weight: bold;
-  color: #374151;
-}
-
-/* Table Styles */
-.table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.table th,
-.table td {
-  padding: 12px;
-  font-size: 14px;
-  text-align: left;
-}
-
-.table th {
+/* Main container */
+.warning-view {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background-color: #f3f4f6;
+  padding: 30px 20px;
+  border-radius: 12px;
+  max-width: 1200px;
+  margin: 40px auto;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+}
+
+/* Heading styles */
+h1 {
+  font-size: 2.5rem;
+  text-align: center;
+  color: #333;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+/* Section Title */
+h2 {
+  font-size: 1.8rem;
+  color: #333;
+  margin-bottom: 12px;
   font-weight: 600;
-  text-transform: uppercase;
-  color: #6b7280;
 }
 
-.table tbody tr:hover {
-  background-color: #f9fafb;
+/* Unordered list styles */
+ul {
+  list-style-type: none;
+  padding: 0;
 }
 
-/* Action Buttons */
-.action-button {
-  background: none;
-  border: none;
-  font-size: 14px;
-  cursor: pointer;
-  transition: color 0.2s ease;
-}
-
-.action-button.edit {
-  color: #2563eb;
-}
-
-.action-button.edit:hover {
-  color: #1d4ed8;
-}
-
-.action-button.delete {
-  color: #dc2626;
-}
-
-.action-button.delete:hover {
-  color: #b91c1c;
-}
-
-/* Modal Styles */
-.modal {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+/* List item styling */
+li {
   background-color: #ffffff;
-  padding: 24px;
   border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
-  width: 400px;
+  padding: 20px;
+  margin: 15px 0;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease-in-out;
 }
 
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
+li:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+/* Bold text within list items */
+strong {
+  color: #2d87f0;
+  font-weight: 600;
+}
+
+/* Button Styling */
+button {
+  background-color: #2d87f0;
+  color: white;
+  padding: 14px 24px;
+  border: none;
+  border-radius: 50px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
   width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 999;
-}
-
-.form-label {
+  max-width: 200px;
   display: block;
-  font-size: 14px;
-  font-weight: 500;
-  color: #374151;
-  margin-bottom: 8px;
+  margin: 40px auto 0;
 }
 
-.form-input {
-  width: 100%;
-  padding: 10px 14px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  font-size: 14px;
-  margin-bottom: 16px;
+button:hover {
+  background-color: #1a6cc8;
 }
 
-.form-input:focus {
-  border-color: #2563eb;
-  box-shadow: 0 0 8px rgba(37, 99, 235, 0.5);
+button:focus {
   outline: none;
 }
+
+button:active {
+  transform: scale(0.98);
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  h1 {
+    font-size: 2rem;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+  }
+
+  li {
+    padding: 15px;
+    font-size: 0.95rem;
+  }
+
+  button {
+    width: 90%;
+    font-size: 1rem;
+  }
+}
+
+/* Larger screen styling */
+@media (min-width: 1024px) {
+  .warning-view {
+    padding: 40px;
+  }
+
+  button {
+    font-size: 1.2rem;
+  }
+}
+
 </style>
+
+

@@ -190,7 +190,9 @@ async function  handleLogout() {
 .qr-code:hover {
   transform: scale(1.1); /* Zoom effect on hover */
 }
-
+button{
+  margin-right: 6px;
+}
 /* Responsive Design */
 @media (max-width: 768px) {
   .sidebar {
