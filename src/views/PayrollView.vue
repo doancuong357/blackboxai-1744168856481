@@ -5,8 +5,12 @@
 
     <!-- Tabs -->
     <div class="tabs">
-      <div class="tab" :class="{ active: currentTab === 'salary' }" @click="currentTab = 'salary'">Salary Table</div>
-      <div class="tab" :class="{ active: currentTab === 'timekeeping' }" @click="currentTab = 'timekeeping'">Timekeeping</div>
+      <div class="tab" :class="{ active: currentTab === 'salary' }" @click="currentTab = 'salary'">
+        💰 Salary Table
+      </div>
+      <div class="tab" :class="{ active: currentTab === 'timekeeping' }" @click="currentTab = 'timekeeping'">
+        📅 Timekeeping
+      </div>
     </div>
 
     <!-- Tab content - Salary Table -->

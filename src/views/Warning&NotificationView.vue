@@ -1,46 +1,74 @@
 <template>
   <div class="warning-view">
-    <h1>Warnings & Notifications</h1>
+    <h1 class="main-title">📢 Notifications & Alerts</h1>
 
-    <!-- Work Anniversary Warnings -->
-    <div v-if="upcomingAnniversaries.length">
-      <h2>Work Anniversary Warnings:</h2>
-      <ul>
-        <li v-for="employee in upcomingAnniversaries" :key="employee.EmployeeID">
-          <strong>{{ employee.FullName }}</strong> sẽ kỷ niệm {{ employee.DaysUntilAnniversary }} ngày làm việc vào ngày {{ employee.HireDate }}.
-        </li>
-      </ul>
+    <!-- Tabs -->
+    <div class="tabs">
+      <button
+        :class="{ active: currentTab === 'anniversary' }"
+        @click="currentTab = 'anniversary'"
+      >
+        🎉 Work Anniversaries
+      </button>
+      <button
+        :class="{ active: currentTab === 'leave' }"
+        @click="currentTab = 'leave'"
+      >
+        🌴 Excessive Leave
+      </button>
+      <button
+        :class="{ active: currentTab === 'salary' }"
+        @click="currentTab = 'salary'"
+      >
+        💰 Salary Discrepancies
+      </button>
     </div>
 
-    <!-- Excessive Leave Warnings -->
-    <div v-if="excessiveLeaveRequests.length">
-      <h2>Excessive Leave Warnings (Month {{ currentMonth }}):</h2>
-      <ul>
-        <li v-for="employee in excessiveLeaveRequests" :key="employee.EmployeeID">
-          <strong>{{ employee.FullName }}</strong> đã sử dụng quá nhiều ngày nghỉ ({{ employee.TotalLeaveDays }} days).
-        </li>
-      </ul>
+    <!-- Tab Content -->
+    <div class="tab-content">
+      <div v-if="currentTab === 'anniversary'">
+        <h2>Upcoming Work Anniversaries:</h2>
+        <ul v-if="upcomingAnniversaries.length">
+          <li v-for="employee in upcomingAnniversaries" :key="employee.EmployeeID">
+            <strong>{{ employee.FullName }}</strong> sẽ kỷ niệm 
+            <span class="highlight">{{ employee.YearsOfService }} năm</span> làm việc vào ngày 
+            <span class="highlight">{{ employee.HireDate }}</span>.
+          </li>
+        </ul>
+        <p v-else>Không có nhân viên nào sắp đến ngày kỷ niệm.</p>
+      </div>
+
+      <div v-if="currentTab === 'leave'">
+        <h2>Excessive Leave (Month {{ currentMonth }}):</h2>
+        <ul v-if="excessiveLeaveRequests.length">
+          <li v-for="employee in excessiveLeaveRequests" :key="employee.EmployeeID">
+            <strong>{{ employee.FullName }}</strong> đã sử dụng 
+            <span class="highlight">{{ employee.TotalLeaveDays }}</span> ngày nghỉ trong tháng.
+          </li>
+        </ul>
+        <p v-else>Không có cảnh báo về ngày nghỉ.</p>
+      </div>
+
+      <div v-if="currentTab === 'salary'">
+        <h2>Salary Discrepancies:</h2>
+        <ul v-if="salaryDiscrepancies.length">
+          <li v-for="employee in salaryDiscrepancies" :key="employee.EmployeeID">
+            <strong>{{ employee.FullName }}</strong> có sự thay đổi lương giữa hai kỳ:
+            <br />
+            <span class="label">Tháng trước:</span> {{ employee.PreviousSalary }} VND
+            <br />
+            <span class="label">Tháng này:</span> {{ employee.CurrentSalary }} VND
+            <br />
+            <span class="label">Chênh lệch:</span> <span class="highlight">{{ employee.DifferencePercent }}%</span>
+          </li>
+        </ul>
+        <p v-else>Không có cảnh báo về lương.</p>
+      </div>
     </div>
 
-    <!-- Salary Discrepancy Warnings -->
-    <div v-if="salaryDiscrepancies.length">
-      <h2>Salary Discrepancy Warnings:</h2>
-      <ul>
-        <li v-for="employee in salaryDiscrepancies" :key="employee.EmployeeID">
-          <strong>{{ employee.FullName }}</strong> có sự thay đổi lương lớn giữa hai kỳ:
-          <br>
-          <strong>Tháng Trước:</strong> {{ employee.PreviousSalary }} VND
-          <br>
-          <strong>Tháng hiện tại:</strong> {{ employee.CurrentSalary }} VND
-          <br>
-          <strong>Chênh Lệch:</strong> {{ employee.DifferencePercent }} %
-        </li>
-      </ul>
-    </div>
-
-    <!-- Send Salary Notifications Button -->
-    <div>
-      <button @click="sendSalaryEmails">Send Salary Notifications</button>
+    <!-- Always-visible Send Email Button -->
+    <div class="send-email-container">
+      <button @click="sendSalaryEmails">📤 Send Salary Emails</button>
     </div>
   </div>
 </template>
@@ -51,55 +79,58 @@ import axios from 'axios';
 export default {
   data() {
     return {
+      currentTab: 'anniversary',
       upcomingAnniversaries: [],
       excessiveLeaveRequests: [],
       salaryDiscrepancies: [],
-      currentMonth: '', // Store the current month
+      currentMonth: '',
     };
   },
   methods: {
-    // Send salary notifications via email (simulated)
     sendSalaryEmails() {
-      axios.get('http://127.0.0.1:5000/send-salary-emails')
-        .then(response => {
-          this.$toast.success('Salary notifications have been sent to all employees.');
+      axios
+        .get('http://127.0.0.1:5000/send-salary-emails')
+        .then((response) => {
+          this.$toast?.success
+            ? this.$toast.success(response.data || 'Gửi email bảng lương thành công.')
+            : alert(response.data);
         })
-        .catch(error => {
-          this.$toast.error('There was an error sending salary notifications.');
+        .catch((error) => {
+          console.error('Lỗi gửi email:', error);
+          this.$toast?.error
+            ? this.$toast.error('Lỗi khi gửi bảng lương.')
+            : alert('Lỗi gửi email.');
         });
     },
-
-    // Fetch data for upcoming work anniversaries
     fetchUpcomingAnniversaries() {
-      axios.get('http://127.0.0.1:5000/employee-anniversary-warning')
-        .then(response => {
+      axios
+        .get('http://127.0.0.1:5000/employee-anniversary-warning')
+        .then((response) => {
           this.upcomingAnniversaries = response.data;
         })
-        .catch(error => {
-          console.error('Error fetching work anniversary data:', error);
+        .catch((error) => {
+          console.error('Lỗi khi lấy dữ liệu kỷ niệm làm việc:', error);
         });
     },
-
-    // Fetch data for excessive leave requests
     fetchExcessiveLeaveRequests() {
-      axios.get('http://127.0.0.1:5000/leave-days-warning')
-        .then(response => {
+      axios
+        .get('http://127.0.0.1:5000/leave-days-warning')
+        .then((response) => {
           this.excessiveLeaveRequests = response.data.employees_with_warning;
-          this.currentMonth = response.data.current_month; // Store the current month
+          this.currentMonth = response.data.current_month;
         })
-        .catch(error => {
-          console.error('Error fetching leave request data:', error);
+        .catch((error) => {
+          console.error('Lỗi khi lấy dữ liệu nghỉ phép:', error);
         });
     },
-
-    // Fetch data for salary discrepancies
     fetchSalaryDiscrepancies() {
-      axios.get('http://127.0.0.1:5000/salary-alerts')
-        .then(response => {
+      axios
+        .get('http://127.0.0.1:5000/salary-alerts')
+        .then((response) => {
           this.salaryDiscrepancies = response.data.alerts;
         })
-        .catch(error => {
-          console.error('Error fetching salary discrepancy data:', error);
+        .catch((error) => {
+          console.error('Lỗi khi lấy dữ liệu lương:', error);
         });
     },
   },
@@ -112,121 +143,127 @@ export default {
 </script>
 
 <style scoped>
-/* Main container */
 .warning-view {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #f3f4f6;
-  padding: 30px 20px;
-  border-radius: 12px;
-  max-width: 1200px;
-  margin: 40px auto;
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+  background-color: #f9fafb;
+  padding: 40px 20px;
+  border-radius: 16px;
+  max-width: 1000px;
+  margin: 50px auto;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
 }
 
-/* Heading styles */
-h1 {
+.main-title {
   font-size: 2.5rem;
   text-align: center;
-  color: #333;
-  font-weight: 700;
+  font-weight: bold;
+  color: #1f2937;
+  margin-bottom: 30px;
+}
+
+.tabs {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
   margin-bottom: 20px;
 }
 
-/* Section Title */
-h2 {
-  font-size: 1.8rem;
-  color: #333;
-  margin-bottom: 12px;
+.tabs button {
+  background: #e5e7eb;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 30px;
+  font-size: 1rem;
   font-weight: 600;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
-/* Unordered list styles */
+.tabs button.active {
+  background-color: #2563eb;
+  color: white;
+  transform: scale(1.05);
+}
+
+.tabs button:hover {
+  background-color: #cbd5e1;
+}
+
+.tab-content {
+  background-color: white;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+  margin-bottom: 30px;
+}
+
+h2 {
+  font-size: 1.5rem;
+  color: #1e40af;
+  margin-bottom: 15px;
+}
+
 ul {
-  list-style-type: none;
+  list-style: none;
   padding: 0;
 }
 
-/* List item styling */
 li {
-  background-color: #ffffff;
-  border-radius: 8px;
-  padding: 20px;
-  margin: 15px 0;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-  transition: all 0.3s ease-in-out;
+  padding: 15px 20px;
+  background: #f1f5f9;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  border-left: 4px solid #2563eb;
+  transition: transform 0.2s;
 }
 
 li:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
 }
 
-/* Bold text within list items */
-strong {
-  color: #2d87f0;
+.label {
+  font-weight: 500;
+  color: #4b5563;
+}
+
+.highlight {
+  color: #2563eb;
   font-weight: 600;
 }
 
-/* Button Styling */
-button {
-  background-color: #2d87f0;
+.send-email-container {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.send-email-container button {
+  background-color: #10b981;
   color: white;
-  padding: 14px 24px;
+  padding: 12px 24px;
+  font-size: 1rem;
+  font-weight: bold;
   border: none;
-  border-radius: 50px;
-  font-size: 1.1rem;
+  border-radius: 40px;
   cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
-  width: 100%;
-  max-width: 200px;
-  display: block;
-  margin: 40px auto 0;
+  transition: all 0.3s ease;
+  box-shadow: 0 6px 12px rgba(16, 185, 129, 0.3);
 }
 
-button:hover {
-  background-color: #1a6cc8;
+.send-email-container button:hover {
+  background-color: #059669;
+  transform: scale(1.03);
 }
 
-button:focus {
-  outline: none;
-}
-
-button:active {
-  transform: scale(0.98);
-}
-
-/* Mobile responsiveness */
 @media (max-width: 768px) {
-  h1 {
-    font-size: 2rem;
+  .tabs {
+    flex-direction: column;
+    align-items: center;
   }
 
-  h2 {
-    font-size: 1.5rem;
-  }
-
-  li {
-    padding: 15px;
-    font-size: 0.95rem;
-  }
-
-  button {
+  .tabs button {
     width: 90%;
-    font-size: 1rem;
   }
 }
-
-/* Larger screen styling */
-@media (min-width: 1024px) {
-  .warning-view {
-    padding: 40px;
-  }
-
-  button {
-    font-size: 1.2rem;
-  }
-}
-
 </style>
-
-

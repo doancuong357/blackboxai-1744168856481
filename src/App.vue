@@ -17,7 +17,7 @@
             <router-link to="/reports" class="sidebar-link">Reports</router-link>
           </li>
           <li>
-            <router-link to="/warning&notification" class="sidebar-link">Warning & Notification</router-link>
+            <router-link to="/warning&notification" class="sidebar-link">Alerts & Notification</router-link>
           </li>
         </ul>
         <button @click="handleLogout">Logout</button>
