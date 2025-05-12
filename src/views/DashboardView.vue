@@ -1,141 +1,346 @@
 <template>
   <div class="dashboard-container">
-    <h1 class="dashboard-title">HR Dashboard</h1>
-    <!-- Cards Section -->
-    <div class="dashboard-cards">
-      <DashboardCard 
-        title="Total Employees" 
-        :value="totalEmployees" 
-        icon="users"
-        color="#4caf50" 
-      />
-      <DashboardCard 
-        title="Active Payroll" 
-        :value="activePayroll" 
-        icon="currency-dollar"
-        color="#2196f3" 
-      />
-      <DashboardCard 
-        title="Departments" 
-        :value="departments" 
-        icon="building-office"
-        color="#ff9800" 
-      />
-      <DashboardCard 
-        title="Pending Tasks" 
-        :value="pendingTasks" 
-        icon="clipboard-list"
-        color="#f44336" 
-      />
-    </div>
-    <!-- Recent Employees Section -->
-    <div class="dashboard-section">
-      <h2 class="section-title">Recent Employees</h2>
-      <ul class="employee-list">
-        <li v-for="employee in recentEmployees" :key="employee.id" class="employee-item">
-          <span>{{ employee.name }}</span>
-          <span class="employee-position">{{ employee.position }}</span>
-        </li>
-      </ul>
+    <!-- Tiêu đề -->
+    <div class="header">
+      <h1>HR Dashboard</h1>
     </div>
 
-    <!-- Payroll Summary Section -->
-    <div class="dashboard-section">
-      <h2 class="section-title">Payroll Summary</h2>
-      <div class="chart-placeholder">
-        <p>Payroll chart will be displayed here</p>
-      </div>
+    <!-- Tìm kiếm nhân viên -->
+    <div class="search-container">
+      <input 
+        v-model="searchQuery" 
+        @input="searchEmployees" 
+        placeholder="Tìm kiếm nhân viên..." 
+        type="text" 
+        class="search-input"
+      />
+    </div>
+
+    <!-- Hiển thị danh sách nhân viên -->
+    <div v-if="employees.length > 0" class="employee-table-container">
+      <h2><i class="fas fa-users"></i> Danh sách nhân viên</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Tên</th>
+            <th>Email</th>
+            <th>Chức vụ</th>
+            <th>Phòng ban</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="employee in filteredEmployees" :key="employee.EmployeeID">
+            <td>{{ employee.FullName }}</td>
+            <td>{{ employee.Email }}</td>
+            <td>{{ employee.PositionName }}</td>
+            <td>{{ employee.DepartmentName }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Thông báo nếu không có nhân viên -->
+    <div v-else class="error-message">
+      <p>Không có nhân viên nào để hiển thị.</p>
+    </div>
+
+    <!-- Lọc bảng lương theo tháng -->
+    <div class="filter-month">
+      <label for="month">Chọn tháng:</label>
+      <select v-model="selectedMonth" @change="filterPayroll" class="month-select">
+        <option v-for="month in months" :key="month.value" :value="month.value">{{ month.name }}</option>
+      </select>
+    </div>
+
+    <!-- Hiển thị bảng lương -->
+    <div v-if="payroll.length > 0" class="payroll-table-container">
+      <h2><i class="fas fa-calendar-dollar"></i> {{ filterTitle }}</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Tên nhân viên</th>
+            <th>Lương cơ bản</th>
+            <th>Thưởng</th>
+            <th>Phụ cấp</th>
+            <th>Lương thực nhận</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="salary in filteredPayroll" :key="salary.SalaryID">
+            <td>{{ salary.FullName }}</td>
+            <td>{{ salary.BaseSalary | currency }}</td>
+            <td>{{ salary.Bonus | currency }}</td>
+            <td>{{ salary.Deductions | currency }}</td>
+            <td>{{ salary.NetSalary | currency }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Thông báo nếu không có bảng lương -->
+    <div v-else class="error-message">
+      <p>Không có bảng lương cho tháng này.</p>
     </div>
   </div>
 </template>
 
-<script setup>
-import DashboardCard from '@/components/common/DashboardCard.vue'
+<script>
+import axios from 'axios';
 
-// Mock data for the dashboard
-const totalEmployees = 124
-const activePayroll = '$124,500'
-const departments = 8
-const pendingTasks = 5
+export default {
+  data() {
+    return {
+      employees: [],
+      payroll: [],
+      searchQuery: '',
+      selectedMonth: new Date().getMonth() + 1, // mặc định chọn tháng hiện tại
+      filteredEmployees: [],
+      filteredPayroll: [],
+      months: [
+        { value: 1, name: 'Tháng 1' },
+        { value: 2, name: 'Tháng 2' },
+        { value: 3, name: 'Tháng 3' },
+        { value: 4, name: 'Tháng 4' },
+        { value: 5, name: 'Tháng 5' },
+        { value: 6, name: 'Tháng 6' },
+        { value: 7, name: 'Tháng 7' },
+        { value: 8, name: 'Tháng 8' },
+        { value: 9, name: 'Tháng 9' },
+        { value: 10, name: 'Tháng 10' },
+        { value: 11, name: 'Tháng 11' },
+        { value: 12, name: 'Tháng 12' }
+      ],
+      filterTitle: '',
+      errorMessage: ''
+    };
+  },
+  methods: {
+    async fetchEmployees() {
+      try {
+        const response = await axios.get('http://127.0.0.1:5000/employees-page');
+        this.employees = response.data.employees;
+        this.filteredEmployees = this.employees; // Bắt đầu với tất cả nhân viên
+      } catch (error) {
+        console.error('Lỗi khi tải danh sách nhân viên:', error);
+        this.errorMessage = "Không thể tải danh sách nhân viên.";
+      }
+    },
+    async fetchPayroll() {
+      try {
+        const response = await axios.get('http://127.0.0.1:5000/salaries/current-month');
+        this.payroll = response.data.salaries;
+        this.filterTitle = response.data.filter_title;
+        this.filteredPayroll = this.payroll;
+      } catch (error) {
+        console.error('Lỗi khi tải bảng lương:', error);
+        this.errorMessage = "Không thể tải bảng lương.";
+      }
+    },
+    searchEmployees() {
+      if (this.searchQuery.trim() === '') {
+        this.filteredEmployees = this.employees;
+      } else {
+        this.filteredEmployees = this.employees.filter(employee =>
+          employee.FullName.toLowerCase().includes(this.searchQuery.toLowerCase())
+        );
+      }
+    },
+    async filterPayroll() {
+      if (this.selectedMonth === undefined || this.selectedMonth === null) return;
 
-const recentEmployees = [
-  { id: 1, name: 'John Doe', position: 'Software Engineer' },
-  { id: 2, name: 'Jane Smith', position: 'HR Manager' },
-  { id: 3, name: 'Alice Johnson', position: 'Accountant' },
-  { id: 4, name: 'Bob Brown', position: 'Marketing Specialist' }
-]
+      try {
+        const response = await axios.get(`http://127.0.0.1:5000/salaries/month/${new Date().getFullYear()}/${this.selectedMonth}`);
+        this.payroll = response.data.salaries;
+        this.filterTitle = response.data.filter_title;
+        this.filteredPayroll = this.payroll;
+      } catch (error) {
+        console.error('Lỗi khi lọc bảng lương:', error);
+        this.errorMessage = "Không thể lọc bảng lương cho tháng này.";
+      }
+    }
+  },
+  created() {
+    this.fetchEmployees();
+    this.fetchPayroll();
+  },
+  watch: {
+    selectedMonth() {
+      this.filterPayroll();
+    }
+  }
+};
 </script>
 
 <style scoped>
-/* Container Styles */
+/* Chỉnh sửa giao diện trang dashboard */
 .dashboard-container {
-  padding: 24px;
-  background-color: #f9fafb; /* Light gray background */
+  font-family: 'Roboto', sans-serif;
+  background-color: #f7f9fb;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
 }
 
-/* Title Styles */
-.dashboard-title {
-  font-size: 28px;
-  font-weight: bold;
-  margin-bottom: 24px;
-  color: #111827; /* Dark text */
+.header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+h1 {
+  font-size: 3rem;
+  font-weight: 700;
+  color: #1d2934;
+  margin: 0;
+  letter-spacing: 2px;
+}
+
+.search-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 30px;
+}
+
+.search-input {
+  padding: 12px 20px;
+  width: 300px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  font-size: 1.1rem;
+  transition: border-color 0.3s ease-in-out;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #2a91d5;
+}
+
+.employee-table-container, .payroll-table-container {
+  margin-top: 40px;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  padding: 25px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+table th, table td {
+  padding: 15px;
+  text-align: left;
+  font-size: 1rem;
+  border: 1px solid #e0e0e0;
+  transition: background-color 0.3s ease-in-out;
+}
+
+table th {
+  background-color: #3175c2;
+  color: white;
+  font-weight: 600;
+}
+
+table tr {
+  transition: background-color 0.3s ease-in-out;
+}
+
+table tr:hover {
+  background-color: #f0f4f7;
+}
+
+table td {
+  color: #222424;
+}
+
+.error-message {
+  text-align: center;
+  color: #d23e2e;
+  font-size: 1.2rem;
+  margin-top: 40px;
+}
+
+.filter-month {
+  margin-top: 40px;
   text-align: center;
 }
 
-/* Cards Section */
-.dashboard-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 16px;
-  margin-bottom: 32px;
-}
-
-/* Section Styles */
-.dashboard-section {
-  background-color: #ffffff; /* White background */
-  padding: 16px;
+.month-select {
+  padding: 12px 20px;
+  font-size: 1rem;
   border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
-  margin-bottom: 24px;
+  border: 1px solid #ddd;
+  background-color: white;
+  cursor: pointer;
+  transition: border-color 0.3s ease-in-out;
 }
 
-.section-title {
-  font-size: 20px;
-  font-weight: 600;
-  margin-bottom: 16px;
-  color: #374151; /* Gray text */
+.month-select:focus {
+  outline: none;
+  border-color: #2b8ac9;
 }
 
-/* Employee List */
-.employee-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.employee-item {
-  display: flex;
-  justify-content: space-between;
-  padding: 8px 0;
-  border-bottom: 1px solid #e5e7eb; /* Light gray border */
-}
-
-.employee-item:last-child {
-  border-bottom: none;
-}
-
-.employee-position {
-  color: #6b7280; /* Gray text */
-}
-
-/* Chart Placeholder */
-.chart-placeholder {
-  height: 200px;
+h2 {
   display: flex;
   align-items: center;
-  justify-content: center;
-  color: #9ca3af; /* Light gray text */
-  background-color: #f3f4f6; /* Light gray background */
-  border-radius: 8px;
+  font-size: 2rem;
+  color: #34495e;
+  margin-bottom: 20px;
+  font-weight: 600;
+}
+
+h2 i {
+  margin-right: 10px;
+  color: #3498db;
+}
+
+.status-active {
+  color: #2ecc71;
+  font-weight: 600;
+}
+
+.status-inactive {
+  color: #e74c3c;
+  font-weight: 600;
+}
+
+.status-active i, .status-inactive i {
+  font-size: 1.1rem;
+  margin-right: 5px;
+}
+
+.status-active:hover, .status-inactive:hover {
+  opacity: 0.8;
+  cursor: pointer;
+  transform: scale(1.05);
+}
+
+@media (max-width: 768px) {
+  .search-input {
+    width: 250px;
+  }
+
+  table th, table td {
+    padding: 12px;
+  }
+
+  h1 {
+    font-size: 2.2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .search-input {
+    width: 200px;
+  }
+
+  table th, table td {
+    padding: 10px;
+  }
+
+  h2 {
+    font-size: 1.6rem;
+  }
 }
 </style>
+

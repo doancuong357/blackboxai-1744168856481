@@ -12,24 +12,30 @@ const routes = [
     path: '/',
     name: 'Dashboard',
     component: () => import('@/views/DashboardView.vue'),
-    meta: { requiresAuth: true, allowedRoles: ['admin', 'hr_manager', 'payroll_manager', 'employee'] }
+    meta: { requiresAuth: true, allowedRoles: ['admin', 'hrmanager', 'payroll'] }
+  },
+  {
+    path: '/employee-dashboard',
+    name: 'EmployeeDashboard', // Trang riêng cho nhân viên
+    component: () => import('@/views/EmployeeDashboardView.vue'),
+    meta: { requiresAuth: true, allowedRoles: ['employee'] }
   },
   {
     path: '/employees',
     name: 'Employees',
     component: () => import('@/views/EmployeesView.vue'),
-    meta: { requiresAuth: true, allowedRoles: ['admin', 'hr_manager'] }
+    meta: { requiresAuth: true, allowedRoles: ['admin', 'hrmanager'] }
   },
   {
     path: '/payroll',
     name: 'Payroll',
     component: () => import('@/views/PayrollView.vue'),
-    meta: { requiresAuth: true, allowedRoles: ['admin', 'payroll_manager'] }
+    meta: { requiresAuth: true, allowedRoles: ['admin', 'payroll'] }
   },
   {
     path: '/warning&notification',
     name: 'Warning&Notification',
-    component: () => import('@/views/Warning&NotificationView.vue'), // Fixed component import
+    component: () => import('@/views/Warning&NotificationView.vue'),
     meta: { requiresAuth: true, allowedRoles: ['admin'] }
   },
   {
@@ -51,17 +57,25 @@ const router = createRouter({
   routes
 })
 
+// Router guard
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore()
 
+  // Ensure user is loaded from localStorage if page is refreshed
+  if (!authStore.user && authStore.token) {
+    const user = JSON.parse(localStorage.getItem('user'))
+    authStore.user = user
+  }
+
+  // Kiểm tra nếu người dùng chưa đăng nhập
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-    next('/login') // Chuyển hướng đến trang login nếu chưa đăng nhập
+    next('/login')
   } else if (to.meta.requiresGuest && authStore.isAuthenticated) {
-    next('/') // Chuyển hướng về Dashboard nếu đã đăng nhập
+    next('/')
   } else if (to.meta.allowedRoles && !to.meta.allowedRoles.includes(authStore.user?.role)) {
-    next('/') // Chuyển hướng về Dashboard nếu người dùng không có quyền truy cập
+    next('/') // Chuyển hướng đến trang chính nếu người dùng không có quyền
   } else {
-    next() // Cho phép truy cập nếu không có vấn đề gì
+    next()
   }
 })
 

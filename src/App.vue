@@ -4,23 +4,33 @@
     <nav v-if="isAuthenticated" class="sidebar">
       <div class="sidebar-content">
         <router-link to="/" class="sidebar-brand">
-          HR Dashboard
+          <i class="fas fa-tachometer-alt"></i> HR Dashboard
         </router-link>
         <ul class="sidebar-links">
           <li>
-            <router-link to="/employees" class="sidebar-link">Employees</router-link>
+            <router-link to="/employees" class="sidebar-link">
+              <i class="fas fa-users"></i> Employees
+            </router-link>
           </li>
           <li>
-            <router-link to="/payroll" class="sidebar-link">Payroll & Attendance</router-link>
+            <router-link to="/payroll" class="sidebar-link">
+              <i class="fas fa-money-check-alt"></i> Payroll & Attendance
+            </router-link>
           </li>
           <li>
-            <router-link to="/reports" class="sidebar-link">Reports</router-link>
+            <router-link to="/reports" class="sidebar-link">
+              <i class="fas fa-chart-line"></i> Reports
+            </router-link>
           </li>
           <li>
-            <router-link to="/warning&notification" class="sidebar-link">Alerts & Notification</router-link>
+            <router-link to="/warning&notification" class="sidebar-link">
+              <i class="fas fa-bell"></i> Alerts & Notification
+            </router-link>
           </li>
         </ul>
-        <button @click="handleLogout">Logout</button>
+        <button @click="handleLogout" class="logout-button">
+          <i class="fas fa-sign-out-alt"></i> Logout
+        </button>
       </div>
     </nav>
 
@@ -42,6 +52,7 @@
     </div>
   </div>
 </template>
+
 
 <script setup>
 import { useAuthStore } from '@/stores/auth'
@@ -131,7 +142,6 @@ async function  handleLogout() {
   color: #f87171; /* Light red */
   cursor: pointer;
   transition: color 0.3s ease;
-  margin-top: auto;
   padding: 10px 16px;
   border-radius: 8px;
 }

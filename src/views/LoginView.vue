@@ -1,4 +1,3 @@
-<!-- filepath: src/views/LoginView.vue -->
 <template>
   <div class="login-container">
     <div class="login-card">
@@ -44,7 +43,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
-const username = ref('') // 🛠 Đổi thành username
+const username = ref('')
 const password = ref('')
 const errorMessage = ref('')
 const router = useRouter()
@@ -52,21 +51,24 @@ const authStore = useAuthStore()
 
 async function handleLogin() {
   try {
-    console.log('Logging in with:', username.value, password.value); // Kiểm tra giá trị username và password
-    await authStore.login({ username: username.value, password: password.value });
-    console.log('Login successful, redirecting...');
-    router.push('/'); // Chuyển hướng tới trang chủ
-    console.log('Redirecting to home page');
+    await authStore.login({ username: username.value, password: password.value })
+
+    const role = authStore.user?.role
+
+    // Điều hướng tùy thuộc vào role
+    if (role === 'employee') {
+      router.push('/employee-dashboard')
+    } else {
+      router.push('/')
+    }
   } catch (err) {
-    console.error('Login error:', err);
-    errorMessage.value = err.response?.data?.message || 'Login failed';
+    errorMessage.value = err.response?.data?.message || 'Login failed'
   }
 }
-
 </script>
 
 <style scoped>
-/* === Styles như cũ, giữ nguyên, đẹp rồi === */
+/* === Styles như cũ, giữ nguyên === */
 .login-container {
   display: flex;
   justify-content: center;

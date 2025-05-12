@@ -79,9 +79,11 @@ const payrollData = ref([]);
 
 // Format VND
 function formatMoney(value) {
-  return new Intl.NumberFormat('vi-VN', {
+  return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: 'VND',
+    currency: 'USD',
+    minimumFractionDigits: 0, // Không hiển thị phần thập phân
+    maximumFractionDigits: 0,
   }).format(value || 0);
 }
 
