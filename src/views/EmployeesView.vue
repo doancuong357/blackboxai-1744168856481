@@ -38,13 +38,13 @@
             <td>{{ emp.Status }}</td>
             <td>
               <button class="edit-btn" @click="openEditModal(emp.EmployeeID)">
-                Edit
+                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#FFFFFF"><path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z"/></svg>
               </button>
               <button
                 class="delete-btn"
                 @click="deleteEmployee(emp.EmployeeID)"
               >
-                Delete
+                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#FFFFFF"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>
               </button>
             </td>
           </tr>
@@ -226,94 +226,202 @@ onMounted(fetchEmployees)
 
 <style scoped>
 .employee-container {
-  padding: 24px;
+  padding: 32px;
+  background-color: #f5f8fb;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
 }
+
 .title {
-  font-size: 24px;
-  font-weight: bold;
-  margin-bottom: 20px;
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 24px;
+  color: #2e3c49;
+  text-align: center;
 }
+
+.search-filter-container {
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.search-input {
+  padding: 12px 16px;
+  border: 1px solid #cbd3da;
+  border-radius: 6px;
+  font-size: 1rem;
+  width: 100%;
+  max-width: 400px;
+  background-color: #fff;
+  transition: border 0.3s ease, box-shadow 0.3s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+}
+
 .header-actions {
   margin-bottom: 16px;
+  text-align: right;
 }
+
 .add-button,
 .edit-btn,
 .delete-btn {
-  padding: 8px 12px;
+  padding: 4px 6px;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: background-color 0.3s ease, transform 0.2s ease;
 }
-select {
-  display: block;
-  width: 100%;
-  padding: 8px 12px;
-  font-size: 14px;
-  color: #3d4553;
-  background-color: #ffffff;
-  border: 1px solid #747474;
-  border-radius: 4px;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
-}
+
 .add-button {
-  background-color: #2563eb;
+  background-color: #1f79c3;
   color: white;
 }
+
 .edit-btn {
-  background-color: #f59e0b;
+  background-color: #d3d3d3;
   color: white;
   margin-right: 8px;
 }
+
 .delete-btn {
-  background-color: #ef4444;
+  background-color: #d3d3d3;
   color: white;
 }
+
+.add-button:hover,
+.edit-btn:hover,
+.delete-btn:hover {
+  opacity: 0.9;
+  transform: scale(1.11);
+  background-color: #434178;
+}
+
 .table-wrapper {
   overflow-x: auto;
-  margin-top: 20px;
+  border-left: 6px solid #5bcd39;
+  border-radius: 8px;
+  background-color: #ffffff;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+}
+input {
+    max-width: 90%;
 }
 table {
   width: 100%;
   border-collapse: collapse;
 }
+
 th,
 td {
-  padding: 12px;
-  border: 1px solid #ddd;
+  padding: 14px 18px;
+  border-bottom: 1px solid #e1e5ea;
   text-align: left;
+  font-size: 0.95rem;
+  color: #2e3c49;
 }
+
+th {
+  background-color: #06b37f;
+  color: #ffffff;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+tbody tr {
+  transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
+}
+
+tbody tr:hover {
+  background-color: #d2f2e2;
+  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.1);
+  transform: scale(1.01);
+  position: relative;
+  z-index: 1;
+  cursor: pointer;
+}
+
 .modal {
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.4);
   display: flex;
   justify-content: center;
   align-items: center;
-}
-.modal-content {
-  background: white;
-  padding: 24px;
-  border-radius: 8px;
-  min-width: 300px;
-}
-.modal-content form input {
-  display: block;
-  margin-bottom: 12px;
-  width: 100%;
-  padding: 8px;
-}
-.search-filter-container {
-  margin-bottom: 16px;
+  z-index: 100;
 }
 
-.search-input {
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+.modal-content {
+  background: white;
+  padding: 28px;
+  border-radius: 12px;
   width: 100%;
-  max-width: 400px;
+  max-width: 480px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
 }
+
+.modal-content h2 {
+  margin-bottom: 20px;
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #2e3c49;
+  text-align: center;
+}
+
+.modal-content form input,
+.modal-content form select {
+  display: block;
+  margin-bottom: 14px;
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #ccd6dd;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  transition: border 0.3s ease, box-shadow 0.3s ease;
+}
+
+.modal-content form input:focus,
+.modal-content form select:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.modal-content button[type="submit"] {
+  background-color: #2563eb;
+  color: white;
+  margin-top: 10px;
+}
+
+.modal-content button[type="button"],
+.modal-content button:not([type]) {
+  background-color: #64748b;
+  color: white;
+  margin-left: 8px;
+}
+
+.modal-content button {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.3s ease;
+}
+
+.modal-content button:hover {
+  opacity: 0.95;
+}
+
 </style>

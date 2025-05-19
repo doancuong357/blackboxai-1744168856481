@@ -93,7 +93,7 @@ export default {
       employees: [],
       payroll: [],
       searchQuery: '',
-      selectedMonth: new Date().getMonth() + 1, // mặc định chọn tháng hiện tại
+      selectedMonth: new Date().getMonth() + 1,
       filteredEmployees: [],
       filteredPayroll: [],
       months: [
@@ -119,7 +119,7 @@ export default {
       try {
         const response = await axios.get('http://127.0.0.1:5000/employees-page');
         this.employees = response.data.employees;
-        this.filteredEmployees = this.employees; // Bắt đầu với tất cả nhân viên
+        this.filteredEmployees = this.employees;
       } catch (error) {
         console.error('Lỗi khi tải danh sách nhân viên:', error);
         this.errorMessage = "Không thể tải danh sách nhân viên.";
@@ -137,17 +137,11 @@ export default {
       }
     },
     searchEmployees() {
-      if (this.searchQuery.trim() === '') {
-        this.filteredEmployees = this.employees;
-      } else {
-        this.filteredEmployees = this.employees.filter(employee =>
-          employee.FullName.toLowerCase().includes(this.searchQuery.toLowerCase())
-        );
-      }
+      this.filteredEmployees = this.searchQuery.trim()
+        ? this.employees.filter(e => e.FullName.toLowerCase().includes(this.searchQuery.toLowerCase()))
+        : this.employees;
     },
     async filterPayroll() {
-      if (this.selectedMonth === undefined || this.selectedMonth === null) return;
-
       try {
         const response = await axios.get(`http://127.0.0.1:5000/salaries/month/${new Date().getFullYear()}/${this.selectedMonth}`);
         this.payroll = response.data.salaries;
@@ -172,26 +166,22 @@ export default {
 </script>
 
 <style scoped>
-/* Chỉnh sửa giao diện trang dashboard */
 .dashboard-container {
-  font-family: 'Roboto', sans-serif;
-  background-color: #f7f9fb;
-  padding: 30px;
-  border-radius: 10px;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(145deg, #f0f4f8, #dfe9f3);
+  padding: 40px;
+  border-radius: 20px;
+  color: #2e3c49;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
 }
 
 .header {
+  background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+  padding: 20px;
+  border-radius: 10px;
   text-align: center;
-  margin-bottom: 40px;
-}
-
-h1 {
-  font-size: 3rem;
-  font-weight: 700;
-  color: #1d2934;
-  margin: 0;
-  letter-spacing: 2px;
+  color: white;
+  margin-bottom: 30px;
 }
 
 .search-container {
@@ -201,63 +191,50 @@ h1 {
 }
 
 .search-input {
-  padding: 12px 20px;
-  width: 300px;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-  font-size: 1.1rem;
-  transition: border-color 0.3s ease-in-out;
+  padding: 12px 18px;
+  width: 320px;
+  margin-top:10px;
+  border-radius: 6px;
+  border: 1px solid #cbd3da;
+  font-size: 1rem;
+  background-color: #ffffff;
+  transition: all 0.3s ease;
 }
 
 .search-input:focus {
   outline: none;
-  border-color: #2a91d5;
+  border-color: #33ede0;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2);
 }
 
-.employee-table-container, .payroll-table-container {
+.employee-table-container,
+.payroll-table-container {
   margin-top: 40px;
-  background-color: white;
-  border-radius: 10px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-  padding: 25px;
+  background: rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(16px);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  padding: 25px 30px;
 }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-table th, table td {
-  padding: 15px;
-  text-align: left;
-  font-size: 1rem;
-  border: 1px solid #e0e0e0;
-  transition: background-color 0.3s ease-in-out;
-}
-
-table th {
-  background-color: #3175c2;
-  color: white;
+h2 {
+  display: flex;
+  align-items: center;
+  font-size: 1.5rem;
   font-weight: 600;
+  margin-bottom: 20px;
 }
 
-table tr {
-  transition: background-color 0.3s ease-in-out;
+h2 i {
+  margin-right: 12px;
+  color: #13cb97;
+  font-size: 1.3rem;
 }
 
-table tr:hover {
-  background-color: #f0f4f7;
-}
-
-table td {
-  color: #222424;
-}
-
-.error-message {
-  text-align: center;
-  color: #d23e2e;
-  font-size: 1.2rem;
-  margin-top: 40px;
+label {
+  font-size: larger;
+  font-weight: 600;
 }
 
 .filter-month {
@@ -266,81 +243,56 @@ table td {
 }
 
 .month-select {
-  padding: 12px 20px;
+  padding: 10px 16px;
   font-size: 1rem;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-  background-color: white;
-  cursor: pointer;
-  transition: border-color 0.3s ease-in-out;
+  border-radius: 6px;
+  border: 1px solid #cbd3da;
+  background-color: #ffffff;
+  transition: border 0.3s ease, box-shadow 0.3s ease;
 }
 
 .month-select:focus {
   outline: none;
-  border-color: #2b8ac9;
+  border-color: #7698bb;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2);
 }
 
-h2 {
-  display: flex;
-  align-items: center;
-  font-size: 2rem;
-  color: #34495e;
-  margin-bottom: 20px;
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+table th,
+table td {
+  padding: 16px 20px;
+  text-align: left;
+  font-size: 0.95rem;
+  border-bottom: 1px solid #e6ecf2;
+}
+
+table th {
+  background-color: #13cb97;
+  color: white;
   font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
 }
 
-h2 i {
-  margin-right: 10px;
-  color: #3498db;
+table tbody tr {
+  transition: all 0.3s ease;
 }
 
-.status-active {
-  color: #2ecc71;
-  font-weight: 600;
+table tbody tr:hover {
+  background-color: rgba(19, 203, 151, 0.08);
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
 }
 
-.status-inactive {
-  color: #e74c3c;
-  font-weight: 600;
-}
-
-.status-active i, .status-inactive i {
-  font-size: 1.1rem;
-  margin-right: 5px;
-}
-
-.status-active:hover, .status-inactive:hover {
-  opacity: 0.8;
-  cursor: pointer;
-  transform: scale(1.05);
-}
-
-@media (max-width: 768px) {
-  .search-input {
-    width: 250px;
-  }
-
-  table th, table td {
-    padding: 12px;
-  }
-
-  h1 {
-    font-size: 2.2rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .search-input {
-    width: 200px;
-  }
-
-  table th, table td {
-    padding: 10px;
-  }
-
-  h2 {
-    font-size: 1.6rem;
-  }
+.error-message {
+  text-align: center;
+  color: #c0392b;
+  font-size: 1.15rem;
+  margin-top: 40px;
 }
 </style>
-

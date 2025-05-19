@@ -55,9 +55,9 @@
           <li v-for="employee in salaryDiscrepancies" :key="employee.EmployeeID">
             <strong>{{ employee.FullName }}</strong> có sự thay đổi lương giữa hai kỳ:
             <br />
-            <span class="label">Tháng trước:</span> {{ employee.PreviousSalary }} VND
+            <span class="label">Tháng trước:</span> {{ employee.PreviousSalary }} $
             <br />
-            <span class="label">Tháng này:</span> {{ employee.CurrentSalary }} VND
+            <span class="label">Tháng này:</span> {{ employee.CurrentSalary }} $
             <br />
             <span class="label">Chênh lệch:</span> <span class="highlight">{{ employee.DifferencePercent }}%</span>
           </li>

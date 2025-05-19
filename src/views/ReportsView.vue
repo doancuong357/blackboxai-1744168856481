@@ -234,8 +234,15 @@ onMounted(() => {
 .report-card {
   background-color: #ffffff;
   padding: 24px;
-  border-radius: 12px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  border-left: 6px solid #48cd7d;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.report-card:hover {
+  transform: scale(1.02);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
 }
 
 .report-title {
@@ -264,18 +271,33 @@ canvas {
   width: 100%;
   border-collapse: collapse;
   margin-top: 1rem;
+  border-left: 6px solid #aac0f5;
+  border-radius: 12px;
+  overflow: hidden;
 }
 
 .payroll-table th,
 .payroll-table td {
-  padding: 12px;
+  padding: 14px 16px;
   text-align: left;
   border-bottom: 1px solid #e5e7eb;
+  font-size: 0.95rem;
 }
 
 .payroll-table th {
   background-color: #f3f4f6;
   color: #374151;
   font-weight: 600;
+}
+
+/* Hover Effect */
+.payroll-table tbody tr {
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.payroll-table tbody tr:hover {
+  background-color: #e0f2fe;
+  transform: scale(1.01);
+  cursor: pointer;
 }
 </style>

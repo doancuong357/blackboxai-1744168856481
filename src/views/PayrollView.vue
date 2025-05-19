@@ -43,11 +43,11 @@
                 <div>{{ record.FullName }}</div>
                 <div class="text-sub">ID: {{ record.SalaryID }}</div>
               </td>
-              <td>{{ record.SalaryMonth }}</td>
-              <td>{{ record.BaseSalary }}</td>
-              <td>{{ record.Bonus }}</td>
-              <td>{{ record.Deductions }}</td>
-              <td>{{ record.NetSalary }}</td>
+              <td>{{ formatDate(record.SalaryMonth) }}</td>
+              <td>{{ formatCurrency(record.BaseSalary) }}</td>
+              <td>{{ formatCurrency(record.Bonus) }}</td>
+              <td>{{ formatCurrency(record.Deductions) }}</td>
+              <td>{{ formatCurrency(record.NetSalary) }}</td>
               <td>
                 <button class="btn-update" @click.stop="updateSalary(record)">Update</button>
               </td>
@@ -55,35 +55,35 @@
           </tbody>
         </table>
       </div>
+    </div>
 
-      <!-- Salary History for selected employee -->
-      <div v-if="selectedEmployee" class="card mt-4">
-        <div class="card-header">
-          <div class="card-title">Salary History - {{ selectedEmployee?.FullName }}</div>
-        </div>
-        <div>
-          <table v-if="employeeSalaryHistory.length > 0">
-            <thead>
-              <tr>
-                <th>Month</th>
-                <th>Base Salary</th>
-                <th>Bonus</th>
-                <th>Deductions</th>
-                <th>Net Salary</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(record, index) in employeeSalaryHistory" :key="index">
-                <td>{{ record.SalaryMonth }}</td>
-                <td>{{ record.BaseSalary }}</td>
-                <td>{{ record.Bonus }}</td>
-                <td>{{ record.Deductions }}</td>
-                <td>{{ record.NetSalary }}</td>
-              </tr>
-            </tbody>
-          </table>
-          <p v-else class="text-sub">No salary history available for this employee.</p>
-        </div>
+    <!-- Salary History -->
+    <div v-if="currentTab === 'salary' && selectedEmployee" class="card">
+      <div class="card-header">
+        <div class="card-title">Salary History - {{ selectedEmployee?.FullName }}</div>
+      </div>
+      <div>
+        <table v-if="employeeSalaryHistory.length > 0">
+          <thead>
+            <tr>
+              <th>Month</th>
+              <th>Base Salary</th>
+              <th>Bonus</th>
+              <th>Deductions</th>
+              <th>Net Salary</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(record, index) in employeeSalaryHistory" :key="index">
+              <td>{{ formatDate(record.SalaryMonth) }}</td>
+              <td>{{ formatCurrency(record.BaseSalary) }}</td>
+              <td>{{ formatCurrency(record.Bonus) }}</td>
+              <td>{{ formatCurrency(record.Deductions) }}</td>
+              <td>{{ formatCurrency(record.NetSalary) }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <p v-else class="text-sub">No salary history available for this employee.</p>
       </div>
     </div>
 
@@ -123,6 +123,24 @@
         </table>
       </div>
     </div>
+
+    <!-- Modal cập nhật lương -->
+    <div v-if="showUpdateModal" class="modal-overlay">
+      <div class="modal">
+        <h2>Cập nhật lương</h2>
+        <label>Base Salary:</label>
+        <input v-model="editingRecord.BaseSalary" type="number" />
+        <label>Bonus:</label>
+        <input v-model="editingRecord.Bonus" type="number" />
+        <label>Deductions:</label>
+        <input v-model="editingRecord.Deductions" type="number" />
+
+        <div class="modal-actions">
+          <button @click="submitUpdatedSalary">Lưu</button>
+          <button @click="showUpdateModal = false">Hủy</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -135,6 +153,9 @@ const salaryData = ref([])
 const timekeepingData = ref([])
 const employeeSalaryHistory = ref([])
 const selectedEmployee = ref(null)
+
+const editingRecord = ref(null)
+const showUpdateModal = ref(false)
 
 onMounted(() => {
   fetchSalaryData()
@@ -176,6 +197,28 @@ function viewSalaryHistory(record) {
     })
 }
 
+function updateSalary(record) {
+  editingRecord.value = { ...record }
+  showUpdateModal.value = true
+}
+
+function submitUpdatedSalary() {
+  axios.post("http://127.0.0.1:5000/update-salary", {
+    SalaryID: editingRecord.value.SalaryID,
+    BaseSalary: parseFloat(editingRecord.value.BaseSalary),
+    Bonus: parseFloat(editingRecord.value.Bonus),
+    Deductions: parseFloat(editingRecord.value.Deductions),
+  })
+  .then(res => {
+    alert(res.data.message)
+    showUpdateModal.value = false
+    fetchSalaryData()
+  })
+  .catch(err => {
+    alert("Lỗi khi cập nhật lương: " + (err.response?.data?.message || err.message))
+  })
+}
+
 function getMonth(dateString) {
   const date = new Date(dateString)
   return date.getMonth() + 1
@@ -185,6 +228,20 @@ function getYear(dateString) {
   const date = new Date(dateString)
   return date.getFullYear()
 }
+
+function formatCurrency(value) {
+  if (typeof value === 'number') {
+    return `$${value.toFixed(0)}`
+  }
+  return `$${parseFloat(value).toFixed(0)}`
+}
+
+function formatDate(dateStr) {
+  const date = new Date(dateStr)
+  const month = (date.getMonth() + 1).toString().padStart(2, '0')
+  const year = date.getFullYear()
+  return `${month}/${year}`
+}
 </script>
 
 <style scoped>
@@ -192,6 +249,13 @@ function getYear(dateString) {
 
 * {
   font-family: 'Inter', sans-serif;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #f3f4f6;
+  margin: 0;
+  color: #111827;
 }
 
 .container {
@@ -203,9 +267,9 @@ function getYear(dateString) {
 .main-title {
   font-size: 2rem;
   font-weight: 600;
-  margin-bottom: 1.5rem;
-  color: #1f2937;
+  margin-bottom: 2rem;
   text-align: center;
+  color: #1f2937;
 }
 
 .tabs {
@@ -216,13 +280,13 @@ function getYear(dateString) {
 }
 
 .tab {
-  padding: 0.6rem 1.4rem;
+  padding: 0.6rem 1.5rem;
   border-radius: 9999px;
   background-color: #e5e7eb;
   color: #374151;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .tab:hover {
@@ -230,17 +294,17 @@ function getYear(dateString) {
 }
 
 .tab.active {
-  background-color: #3b82f6;
+  background-color: #06b37f;
   color: white;
   font-weight: 600;
 }
 
 .card {
   background-color: white;
-  border: 1px solid #e5e7eb;
+  border-left: 6px solid #3ac52d;
   border-radius: 16px;
   padding: 1.5rem;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.04);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
   margin-bottom: 2rem;
 }
 
@@ -258,10 +322,13 @@ table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 1rem;
+  background-color: white;
+  overflow: hidden;
+  border-radius: 12px;
 }
 
 thead {
-  background-color: #f3f4f6;
+  background-color: #dbdedd;
 }
 
 th, td {
@@ -271,8 +338,9 @@ th, td {
   font-size: 0.95rem;
 }
 
-tr:hover {
-  background-color: #f9fafb;
+tbody tr:hover {
+  background-color: #d2f7f3;
+  transition: background-color 0.2s ease;
 }
 
 .text-sub {
@@ -282,6 +350,66 @@ tr:hover {
 
 .clickable-row {
   cursor: pointer;
-  transition: background-color 0.2s ease;
+}
+
+.btn-update {
+  background-color: #129980;
+  color: white;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: background-color 0.3s ease;
+}
+
+.btn-update:hover {
+  background-color: #154f63;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex; justify-content: center; align-items: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  max-width: 400px;
+  width: 100%;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+
+.modal input {
+  width: 100%;
+  padding: 0.5rem;
+  margin: 0.4rem 0 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+.modal-actions button{
+  background-color: #288c93;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.875rem;
+}.modal-actions button:hover {
+  background-color: #0c5054;
+  transform: scale(1.09) ;
+  transition: transform 0.599s ease;
 }
 </style>
